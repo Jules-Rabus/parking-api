@@ -64,6 +64,7 @@ jobs:
         name: Doctrine Schema Validator
         if: false # Remove this line if Doctrine ORM is installed
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate
+        
   lint:
     name: Docker Lint
     runs-on: ubuntu-latest
@@ -74,3 +75,16 @@ jobs:
       -
         name: Lint Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
+
+  sonarcloud:
+    name: SonarQube Cloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: SonarQube Cloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
