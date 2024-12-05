@@ -40,20 +40,22 @@ jobs:
       -
         name: Start services
         run: docker compose up --wait --no-build
+        
       -
         name: Check HTTP reachability
         run: curl -v --fail-with-body http://localhost
+        
       -
         name: Check HTTPS reachability
-        if: false # Remove this line when the homepage will be configured, or change the path to check
         run: curl -vk --fail-with-body https://localhost
+        
       -
         name: Check Mercure reachability
         run: curl -vkI --fail-with-body https://localhost/.well-known/mercure?topic=test
 
       -  
         name: Make executable
-        run: chmod +x bin/console
+        run: chmod +x bin/console && chmod +x bin/phpunit
 
       -
         name: Create test database
@@ -65,8 +67,7 @@ jobs:
         
       -
         name: Run PHPUnit
-        if: false # Remove this line if PHPUnit is installed
-        run: docker compose exec -T php bin/phpunit
+        run: docker compose exec -T php bin/phpunit tests
         
       -
         name: Doctrine Schema Validator
@@ -74,11 +75,11 @@ jobs:
       
       -  
         name: Run PHP-CS-Fixer (Symfony rules)
-        run: ./vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no @Symfony
+        run: docker compose exec -T php ./vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no --rules=@Symfony
         
       -  
         name: Run PHPStan
-        run: ./vendor/bin/phpstan analyse --level=6 src
+        run: docker compose exec -T php ./vendor/bin/phpstan analyse --level=6 src
         
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
