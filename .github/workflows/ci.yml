@@ -71,6 +71,14 @@ jobs:
       -
         name: Doctrine Schema Validator
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate --skip-sync
+      
+      -  
+        name: Run PHP-CS-Fixer (Symfony rules)
+        run: ./vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no @Symfony
+        
+      -  
+        name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse --level=6 src
         
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
