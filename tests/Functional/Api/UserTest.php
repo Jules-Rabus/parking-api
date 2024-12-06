@@ -2,24 +2,20 @@
 
 namespace App\Tests\Functional\Api;
 
-use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use App\Entity\User;
 use App\Factory\UserFactory;
-use Zenstruck\Foundry\Test\Factories;
-use Zenstruck\Foundry\Test\ResetDatabase;
 
-class UserTest extends ApiTestCase
+final class UserTest extends AbstractTestCase
 {
-    use ResetDatabase;
-    use Factories;
+    private const string ROUTE = '/users';
 
-    private const string route = '/users';
-
-    public function testGetCollection(): void
+    public function testGetCollectionWithAdmin(): void
     {
-        UserFactory::CreateMany(50);
+        UserFactory::CreateMany(48);
 
-        $response = static::createClient()->request('GET', self::route,
+        $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+
+        $response = $this->createClientWithCredentials($user)->request('GET', self::ROUTE,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -49,13 +45,30 @@ class UserTest extends ApiTestCase
         $this->assertMatchesResourceCollectionJsonSchema(User::class);
     }
 
-    public function testGetUser(): void
+    public function testGetCollectionWithUser(): void
     {
+        UserFactory::CreateMany(48);
+
         $user = UserFactory::new()->create();
+
+        $this->createClientWithCredentials($user)->request('GET', self::ROUTE,
+            [
+                'headers' => [
+                    'Accept' => 'application/ld+json',
+                ],
+            ]
+        );
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testGetUserWithAdmin(): void
+    {
+        $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
 
         $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
 
-        $response = static::createClient()->request('GET', $iri,
+        $response = $this->createClientWithCredentials($user)->request('GET', $iri,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -79,11 +92,53 @@ class UserTest extends ApiTestCase
         $this->assertMatchesResourceItemJsonSchema(User::class);
     }
 
+    public function testGetUserWithOwner(): void
+    {
+        $user = UserFactory::new()->create();
+
+        $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
+
+        $response = $this->createClientWithCredentials($user)->request('GET', $iri,
+            [
+                'headers' => [
+                    'Accept' => 'application/ld+json',
+                ],
+            ]
+        );
+
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+
+        $this->assertJsonContains([
+            '@context' => '/contexts/User',
+            '@id' => $iri,
+            '@type' => 'User',
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+        ]);
+
+        $this->assertNotContains($user->getPassword(), $response->toArray());
+
+        $this->assertMatchesResourceItemJsonSchema(User::class);
+    }
+
+    public function testGetUserWithWrongUser(): void
+    {
+        $user = UserFactory::new()->create();
+        $wrongUser = UserFactory::new()->create();
+
+        $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
+
+        $this->createClientWithCredentials($wrongUser)->request('GET', $iri);
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
     public function testCreateUser(): void
     {
         $user = UserFactory::new()->withoutPersisting()->create();
 
-        $response = static::createClient()->request('POST', self::route,
+        $response = $this->createClientWithCredentials()->request('POST', self::ROUTE,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -116,7 +171,7 @@ class UserTest extends ApiTestCase
     {
         $userInvalid = UserFactory::new()->withoutPersisting()->create(['email' => 'not_a_valid_email']);
 
-        static::createClient()->request('POST', self::route,
+        $this->createClientWithCredentials()->request('POST', self::ROUTE,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -149,14 +204,15 @@ class UserTest extends ApiTestCase
         ]);
     }
 
-    public function testUpdateUser(): void
+    public function testUpdateUserWithAdmin(): void
     {
+        $admin = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
         $user = UserFactory::new()->create();
         $newEmail = UserFactory::new()->withoutPersisting()->create()->getEmail();
 
         $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
 
-        $response = static::createClient()->request('PATCH', $iri,
+        $response = $this->createClientWithCredentials($admin)->request('PATCH', $iri,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -181,18 +237,100 @@ class UserTest extends ApiTestCase
         $this->assertMatchesResourceItemJsonSchema(User::class);
     }
 
-    public function testDeleteUser(): void
+    public function testUpdateUserWithOwner(): void
     {
         $user = UserFactory::new()->create();
+        $newEmail = UserFactory::new()->withoutPersisting()->create()->getEmail();
 
         $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
 
-        static::createClient()->request('DELETE', $iri);
+        $response = $this->createClientWithCredentials($user)->request('PATCH', $iri,
+            [
+                'headers' => [
+                    'Accept' => 'application/ld+json',
+                    'Content-Type' => 'application/merge-patch+json',
+                ],
+                'json' => [
+                    'email' => $newEmail,
+                ],
+            ],
+        );
+
+        $this->assertResponseIsSuccessful();
+        $this->assertJsonContains([
+            '@context' => '/contexts/User',
+            '@type' => 'User',
+            'email' => $newEmail,
+            'roles' => $user->getRoles(),
+        ]);
+
+        $this->assertNotContains($user->getPassword(), $response->toArray());
+
+        $this->assertMatchesResourceItemJsonSchema(User::class);
+    }
+
+    public function testUpdateUserWithWrongUser(): void
+    {
+        $user = UserFactory::new()->create();
+        $newEmail = UserFactory::new()->withoutPersisting()->create()->getEmail();
+        $wrongUser = UserFactory::new()->create();
+
+        $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
+
+        $this->createClientWithCredentials($wrongUser)->request('PATCH', $iri,
+            [
+                'headers' => [
+                    'Accept' => 'application/ld+json',
+                    'Content-Type' => 'application/merge-patch+json',
+                ],
+                'json' => [
+                    'email' => $newEmail,
+                ],
+            ],
+        );
+
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testDeleteUserWithAdmin(): void
+    {
+        $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+
+        $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
+
+        $this->createClientWithCredentials($user)->request('DELETE', $iri);
 
         $this->assertResponseStatusCodeSame(204);
 
         $this->assertNull(
             static::getContainer()->get('doctrine')->getRepository(User::class)->find($user->getId())
         );
+    }
+
+    public function testDeleteUserWithOwner(): void
+    {
+        $user = UserFactory::new()->create();
+
+        $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
+
+        $this->createClientWithCredentials($user)->request('DELETE', $iri);
+
+        $this->assertResponseStatusCodeSame(204);
+
+        $this->assertNull(
+            static::getContainer()->get('doctrine')->getRepository(User::class)->find($user->getId())
+        );
+    }
+
+    public function testDeleteUserWithWrongUser(): void
+    {
+        $user = UserFactory::new()->create();
+        $wrongUser = UserFactory::new()->create();
+
+        $iri = $this->findIriBy(User::class, ['id' => $user->getId()]);
+
+        $this->createClientWithCredentials($wrongUser)->request('DELETE', $iri);
+
+        $this->assertResponseStatusCodeSame(403);
     }
 }

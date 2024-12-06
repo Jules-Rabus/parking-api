@@ -19,24 +19,26 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
     operations: [
-        new GetCollection(),
+        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new Get(security: self::ACCESS),
         new Post(validationContext: ['groups' => ['Default', self::WRITE]], processor: UserPasswordHasher::class),
-        new Get(),
-        new Put(processor: UserPasswordHasher::class),
-        new Patch(processor: UserPasswordHasher::class),
-        new Delete(),
+        new Patch(security: self::ACCESS, processor: UserPasswordHasher::class),
+        new Put(security: self::ACCESS, processor: UserPasswordHasher::class),
+        new Delete(security: self::ACCESS),
     ],
     normalizationContext: ['groups' => self::READ],
-    denormalizationContext: ['groups' => [self::WRITE, self::UPDATE]]
+    denormalizationContext: ['groups' => [self::WRITE, self::UPDATE]],
 )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    public const READ = 'user:read';
-    public const WRITE = 'user:write';
-    public const UPDATE = 'user:update';
+    public const string READ = 'user:read';
+    public const string WRITE = 'user:write';
+    public const string UPDATE = 'user:update';
+
+    private const string ACCESS = 'is_granted("ROLE_ADMIN") or object == user';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -94,9 +96,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @see UserInterface
-     *
      * @return list<string>
+     *
+     * @see UserInterface
      */
     public function getRoles(): array
     {

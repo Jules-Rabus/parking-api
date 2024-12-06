@@ -11,6 +11,7 @@ services:
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
       - ./vendor:/app/vendor
+      - ./var:/app/var
     environment:
       MERCURE_EXTRA_DIRECTIVES: demo
       # See https://xdebug.org/docs/all_settings#mode
@@ -19,11 +20,11 @@ services:
       # Ensure that host.docker.internal is correctly defined on Linux
       - host.docker.internal:host-gateway
     tty: true
-
-###> symfony/mercure-bundle ###
-###< symfony/mercure-bundle ###
-
-###> doctrine/doctrine-bundle ###
+  
+  ###> symfony/mercure-bundle ###
+  ###< symfony/mercure-bundle ###
+  
+  ###> doctrine/doctrine-bundle ###
   database:
     ports:
       - "5432"
