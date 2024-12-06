@@ -66,12 +66,12 @@ jobs:
         run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
         
       -
-        name: Run PHPUnit
-        run: docker compose exec -T php bin/phpunit tests
-        
-      -
         name: Doctrine Schema Validator
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate --skip-sync
+        
+      -
+        name: Doctrine Migrations Up-To-Date
+        run: docker compose exec -T php bin/console -e test doctrine:migrations:up-to-date
       
       -  
         name: Run PHP-CS-Fixer (Symfony rules)
@@ -80,6 +80,15 @@ jobs:
       -  
         name: Run PHPStan
         run: docker compose exec -T php ./vendor/bin/phpstan analyse --level=6 src
+
+      - name: Run PHPUnit
+        run: docker compose exec -T php bin/phpunit tests --coverage-clover=coverage.xml
+        
+      - name: Upload Code Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage
+          path: coverage.xml
         
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -111,10 +120,17 @@ jobs:
   sonarcloud:
     name: SonarQube Cloud
     runs-on: ubuntu-latest
+    needs: tests
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          
+      - name: Download Code Coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: code-coverage
+          
       - name: SonarQube Cloud Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
