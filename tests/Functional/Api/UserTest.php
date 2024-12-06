@@ -13,11 +13,13 @@ class UserTest extends ApiTestCase
     use ResetDatabase;
     use Factories;
 
+    private const string route = '/users';
+
     public function testGetCollection(): void
     {
         UserFactory::CreateMany(50);
 
-        $response = static::createClient()->request('GET', '/users',
+        $response = static::createClient()->request('GET', self::route,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -81,7 +83,7 @@ class UserTest extends ApiTestCase
     {
         $user = UserFactory::new()->withoutPersisting()->create();
 
-        $response = static::createClient()->request('POST', '/users',
+        $response = static::createClient()->request('POST', self::route,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -114,7 +116,7 @@ class UserTest extends ApiTestCase
     {
         $userInvalid = UserFactory::new()->withoutPersisting()->create(['email' => 'not_a_valid_email']);
 
-        static::createClient()->request('POST', '/users',
+        static::createClient()->request('POST', self::route,
             [
                 'headers' => [
                     'Accept' => 'application/ld+json',
@@ -145,7 +147,6 @@ class UserTest extends ApiTestCase
             'detail' => 'email: This value is not a valid email address.',
             'description' => 'email: This value is not a valid email address.',
         ]);
-
     }
 
     public function testUpdateUser(): void
