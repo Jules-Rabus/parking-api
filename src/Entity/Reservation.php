@@ -8,10 +8,11 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Traits\Timestampable;
 use App\Enum\ReservationStatusEnum;
 use App\Repository\ReservationRepository;
+use App\State\ReservationPersistProcessor;
+use App\Validator\ReservationAvailability;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -25,16 +26,16 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(),
+        new Post(processor: ReservationPersistProcessor::class),
         new Patch(),
-        new Put(),
         new Delete(),
     ],
-    security: self::ACCESS,
     normalizationContext: ['groups' => [self::READ]],
-    denormalizationContext: ['groups' => [self::WRITE, self::UPDATE]
-)
+    denormalizationContext: ['groups' => [self::WRITE, self::UPDATE]],
+    security: self::ACCESS,
+)]
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
+#[ReservationAvailability]
 final class Reservation
 {
     use Timestampable;
@@ -43,7 +44,7 @@ final class Reservation
     public const string WRITE = 'reservation:write';
     public const string UPDATE = 'reservation:update';
 
-    private const string ACCESS = 'is_granted("ROLE_ADMIN")';
+    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER")';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -172,7 +173,7 @@ final class Reservation
      */
     public function removeDates(): static
     {
-       $this->dates->clear();
+        $this->dates->clear();
         return $this;
     }
 
@@ -182,7 +183,17 @@ final class Reservation
     public function addDates(Collection $dates): static
     {
         $this->dates = $dates;
+        foreach ($dates as $date) {
+            $date->addReservation($this);
+        }
+        
         return $this;
+    }
+
+    #[Groups([self::READ])]
+    public function getDuration(): int
+    {
+        return $this->startDate->diff($this->endDate)->days + 1;
     }
 
 }
