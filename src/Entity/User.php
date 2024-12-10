@@ -23,7 +23,6 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(security: self::ACCESS),
         new Post(validationContext: ['groups' => ['Default', self::WRITE]], processor: UserPasswordHasher::class),
         new Patch(security: self::ACCESS, processor: UserPasswordHasher::class),
-        new Put(security: self::ACCESS, processor: UserPasswordHasher::class),
         new Delete(security: self::ACCESS),
     ],
     normalizationContext: ['groups' => self::READ],
@@ -92,7 +91,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**
