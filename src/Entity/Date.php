@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DateRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_DATE', columns: ['date'])]
@@ -37,16 +38,12 @@ class Date
      * @var Collection<int, Reservation>
      */
     #[ORM\ManyToMany(targetEntity: Reservation::class, inversedBy: 'dates')]
+    #[Assert\Count(max: self::MAX_RESERVATIONS)]
     private Collection $reservations;
 
     public function __construct()
     {
         $this->reservations = new ArrayCollection();
-    }
-
-    private function getIri(): string
-    {
-        return $this->date->format('Y-m-d');
     }
 
     public function getId(): ?int
@@ -104,7 +101,7 @@ class Date
      */
     public function getArrivals(): Collection
     {
-        return $this->reservations->filter(fn(Reservation $reservation) => $reservation->getStartDate() === $this->getDate());
+        return $this->reservations->filter(fn(Reservation $reservation) => $reservation->getStartDate() == $this->getDate());
     }
 
     /**
@@ -112,7 +109,7 @@ class Date
      */
     public function getDepartures(): Collection
     {
-        return $this->reservations->filter(fn(Reservation $reservation) => $reservation->getEndDate() === $this->getDate());
+        return $this->reservations->filter(fn(Reservation $reservation) => $reservation->getEndDate() == $this->getDate());
     }
 
     public function getRemainingVehicleCapacity(): int
@@ -122,11 +119,11 @@ class Date
 
     public function getArrivalVehicleCount(): int
     {
-        return array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + ($reservation->getStartDate() === $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
+        return array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + ($reservation->getStartDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
     }
 
     public function getDepartureVehicleCount(): int
     {
-        return array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + ($reservation->getEndDate() === $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
+        return array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + ($reservation->getEndDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
     }
 }

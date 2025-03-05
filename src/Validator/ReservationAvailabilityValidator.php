@@ -3,6 +3,7 @@
 namespace App\Validator;
 
 use App\Entity\Reservation;
+use App\Enum\ReservationStatusEnum;
 use App\Repository\DateRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -19,6 +20,10 @@ class ReservationAvailabilityValidator extends ConstraintValidator
         /* @var ReservationAvailability $constraint */
 
         if (!$value instanceof Reservation) {
+            return;
+        }
+
+        if ($value->getStatus() === ReservationStatusEnum::CANCELLED) {
             return;
         }
 

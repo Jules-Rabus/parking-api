@@ -23,23 +23,11 @@ class ReservationTest extends TestCase
         $this->assertEquals(new \DateTimeImmutable('2021-01-01'), $reservation->getStartDate());
     }
 
-    public function testSetStartDate()
-    {
-        $reservation = new Reservation();
-        $reservation->setStartDate(new \DateTimeImmutable('2021-01-01'));
-    }
-
     public function testGetEndDate()
     {
         $reservation = new Reservation();
         $reservation->setEndDate(new \DateTimeImmutable('2021-01-01'));
         $this->assertEquals(new \DateTimeImmutable('2021-01-01'), $reservation->getEndDate());
-    }
-
-    public function testSetEndDate()
-    {
-        $reservation = new Reservation();
-        $reservation->setEndDate(new \DateTimeImmutable('2021-01-01'));
     }
 
     public function testGetVehicleCount()
@@ -49,23 +37,11 @@ class ReservationTest extends TestCase
         $this->assertEquals(5, $reservation->getVehicleCount());
     }
 
-    public function testSetVehicleCount()
-    {
-        $reservation = new Reservation();
-        $reservation->setVehicleCount(5);
-    }
-
     public function testGetStatus()
     {
         $reservation = new Reservation();
         $reservation->setStatus(ReservationStatusEnum::CONFIRMED);
         $this->assertEquals(ReservationStatusEnum::CONFIRMED, $reservation->getStatus());
-    }
-
-    public function testSetStatus()
-    {
-        $reservation = new Reservation();
-        $reservation->setStatus(ReservationStatusEnum::CONFIRMED);
     }
 
     public function testGetDates()
