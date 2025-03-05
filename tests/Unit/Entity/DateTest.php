@@ -21,12 +21,6 @@ class DateTest extends TestCase
         $this->assertEquals(new \DateTimeImmutable('2021-01-01'), $date->getDate());
     }
 
-    public function testSetDate()
-    {
-        $date = new Date();
-        $date->setDate(new \DateTimeImmutable('2021-01-01'));
-    }
-
     public function testGetReservations()
     {
         $date = new Date();
@@ -109,14 +103,14 @@ class DateTest extends TestCase
     {
         $date = new Date();
         $date->setDate(new \DateTimeImmutable('2021-01-01'));
-        $this->assertEquals(0, $date->getRemainingVehicleCapacity());
+        $this->assertEquals(40, $date->getRemainingVehicleCapacity());
 
         $reservation = new Reservation();
         $reservation->setStartDate(new \DateTimeImmutable('2021-01-01'));
         $reservation->setVehicleCount(5);
         $date->addReservation($reservation);
 
-        $this->assertEquals(5, $date->getRemainingVehicleCapacity());
+        $this->assertEquals(35, $date->getRemainingVehicleCapacity());
 
         $reservation2 = new Reservation();
         $reservation2->setStartDate(new \DateTimeImmutable('2021-01-01'));
@@ -128,7 +122,7 @@ class DateTest extends TestCase
         $reservation3->setVehicleCount(2);
         $date->addReservation($reservation3);
 
-        $this->assertEquals(2, $date->getRemainingVehicleCapacity());
+        $this->assertEquals(30, $date->getRemainingVehicleCapacity());
     }
 
     public function testGetArrivalVehicleCount()

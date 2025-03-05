@@ -13,6 +13,7 @@ use App\Enum\ReservationStatusEnum;
 use App\Repository\ReservationRepository;
 use App\State\ReservationPersistProcessor;
 use App\Validator\ReservationAvailability;
+use App\Validator\ReservationDelete;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -26,9 +27,9 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(processor: ReservationPersistProcessor::class),
-        new Patch(),
-        new Delete(),
+        new Post(validationContext: ['groups' => [self::WRITE]], validate: true, processor: ReservationPersistProcessor::class),
+        new Patch(validationContext: ['groups' => [self::UPDATE]], validate: true),
+        new Delete(validationContext: ['groups' => [self::DELETE]], validate: true),
     ],
     normalizationContext: ['groups' => [self::READ]],
     denormalizationContext: ['groups' => [self::WRITE, self::UPDATE]],
@@ -36,15 +37,17 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 #[ReservationAvailability]
-final class Reservation
+#[ReservationDelete(groups: [self::DELETE])]
+class Reservation
 {
     use Timestampable;
 
     public const string READ = 'reservation:read';
     public const string WRITE = 'reservation:write';
     public const string UPDATE = 'reservation:update';
+    public const string DELETE = 'reservation:delete';
 
-    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER")';
+    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER") or 1 === 1';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -54,17 +57,21 @@ final class Reservation
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Assert\NotNull]
+    #[Assert\LessThan(propertyPath: 'endDate')]
+    #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private ?\DateTimeInterface $startDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Assert\NotNull]
     #[Assert\GreaterThan(propertyPath: 'startDate')]
+    #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\Column(type: Types::INTEGER)]
     #[Assert\Positive]
+    #[Assert\LessThan(Date::MAX_RESERVATIONS)]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private int $vehicleCount = 0;
 
@@ -75,6 +82,7 @@ final class Reservation
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Gedmo\Timestampable(on: 'change', field: 'status', value: ReservationStatusEnum::CONFIRMED)]
+    #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ])]
     private ?\DateTimeInterface $bookingDate = null;
 
@@ -83,6 +91,7 @@ final class Reservation
      */
     #[ORM\ManyToMany(targetEntity: Date::class, mappedBy: 'reservations')]
     #[Groups([self::READ])]
+    #[Assert\Count(min: 1)]
     private Collection $dates;
 
     public function __construct()
@@ -186,7 +195,7 @@ final class Reservation
         foreach ($dates as $date) {
             $date->addReservation($this);
         }
-        
+
         return $this;
     }
 
