@@ -12,7 +12,6 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class DateRepositoryTest extends KernelTestCase
 {
-
     use Factories;
     use ResetDatabase;
 
@@ -84,7 +83,7 @@ class DateRepositoryTest extends KernelTestCase
             'reservation' => ReservationFactory::createOne([
                 'startDate' => new \DateTimeImmutable('2021-05-01'),
                 'endDate' => new \DateTimeImmutable('2021-05-01'),
-                'vehicleCount' => 1
+                'vehicleCount' => 1,
             ]),
         ]);
 
@@ -101,7 +100,7 @@ class DateRepositoryTest extends KernelTestCase
             'reservation' => ReservationFactory::createOne([
                 'startDate' => new \DateTimeImmutable('2021-06-01'),
                 'endDate' => new \DateTimeImmutable('2021-06-01'),
-                'vehicleCount' => 1
+                'vehicleCount' => 1,
             ]),
         ]);
         DateFactory::createOne([
@@ -109,7 +108,7 @@ class DateRepositoryTest extends KernelTestCase
             'reservation' => ReservationFactory::createOne([
                 'startDate' => new \DateTimeImmutable('2021-06-02'),
                 'endDate' => new \DateTimeImmutable('2021-06-02'),
-                'vehicleCount' => 2
+                'vehicleCount' => 2,
             ]),
         ]);
 
@@ -135,7 +134,6 @@ class DateRepositoryTest extends KernelTestCase
 
         $this->assertEquals(Date::MAX_RESERVATIONS - 10, $remainingVehicleCapacity);
     }
-
 
     protected function tearDown(): void
     {

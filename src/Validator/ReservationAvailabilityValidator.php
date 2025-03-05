@@ -10,20 +10,18 @@ use Symfony\Component\Validator\ConstraintValidator;
 
 class ReservationAvailabilityValidator extends ConstraintValidator
 {
-
     public function __construct(private readonly DateRepository $dateRepository)
     {
     }
 
     public function validate(mixed $value, Constraint $constraint): void
     {
-        /* @var ReservationAvailability $constraint */
-
+        /** @var ReservationAvailability $constraint */
         if (!$value instanceof Reservation) {
             return;
         }
 
-        if ($value->getStatus() === ReservationStatusEnum::CANCELLED) {
+        if (ReservationStatusEnum::CANCELLED === $value->getStatus()) {
             return;
         }
 
@@ -32,8 +30,8 @@ class ReservationAvailabilityValidator extends ConstraintValidator
 
         if ($remainingWithCurrentReservation < 0) {
             $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ remaining }}', $remainingVehicleCapacity)
-                ->setParameter('{{ count }}', $value->getVehicleCount())
+                ->setParameter('{{ remaining }}', (string) $remainingVehicleCapacity)
+                ->setParameter('{{ count }}', (string) $value->getVehicleCount())
                 ->addViolation();
         }
     }

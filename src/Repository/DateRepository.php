@@ -3,8 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Date;
-use DateTimeImmutable;
-use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -18,7 +16,10 @@ class DateRepository extends ServiceEntityRepository
         parent::__construct($registry, Date::class);
     }
 
-    public function findDatesBetween(DateTimeInterface $startDate, DateTimeInterface $endDate): array
+    /**
+     * @return Date[]
+     */
+    public function findDatesBetween(\DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
         $theoricalCount = $endDate->diff($startDate)->days + 1;
 
@@ -37,7 +38,12 @@ class DateRepository extends ServiceEntityRepository
         return $this->createMissingDates($dates, $startDate, $endDate);
     }
 
-    private function createMissingDates(array $existingDates, DateTimeInterface $startDate, DateTimeInterface $endDate): array
+    /**
+     * @param array<Date> $existingDates
+     *
+     * @return array<Date>
+     */
+    private function createMissingDates(array $existingDates, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
     {
         $entityManager = $this->getEntityManager();
 
@@ -60,14 +66,14 @@ class DateRepository extends ServiceEntityRepository
         }
 
         $entityManager->flush();
+
         return array_values($existingByDate);
     }
-
 
     public function getRemainingVehicleCapacity(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
     {
         $subQuery = $this->createQueryBuilder('d')
-            ->select(Date::MAX_RESERVATIONS . ' - SUM(r.vehicleCount) as totalVehicleCount')
+            ->select(Date::MAX_RESERVATIONS.' - SUM(r.vehicleCount) as totalVehicleCount')
             ->join('d.reservations', 'r')
             ->where('r.startDate >= :startDate')
             ->andWhere('r.endDate <= :endDate')
@@ -78,7 +84,5 @@ class DateRepository extends ServiceEntityRepository
         $result = $subQuery->getQuery()->getResult();
 
         return $result ? min(array_column($result, 'totalVehicleCount')) : Date::MAX_RESERVATIONS;
-
     }
-
 }

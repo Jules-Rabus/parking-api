@@ -101,7 +101,7 @@ class Date
      */
     public function getArrivals(): Collection
     {
-        return $this->reservations->filter(fn(Reservation $reservation) => $reservation->getStartDate() == $this->getDate());
+        return $this->reservations->filter(fn (Reservation $reservation) => $reservation->getStartDate() == $this->getDate());
     }
 
     /**
@@ -109,21 +109,21 @@ class Date
      */
     public function getDepartures(): Collection
     {
-        return $this->reservations->filter(fn(Reservation $reservation) => $reservation->getEndDate() == $this->getDate());
+        return $this->reservations->filter(fn (Reservation $reservation) => $reservation->getEndDate() == $this->getDate());
     }
 
     public function getRemainingVehicleCapacity(): int
     {
-        return self::MAX_RESERVATIONS - array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + $reservation->getVehicleCount(), 0);
+        return self::MAX_RESERVATIONS - array_reduce($this->reservations->toArray(), fn (int $count, Reservation $reservation) => $count + $reservation->getVehicleCount(), 0);
     }
 
     public function getArrivalVehicleCount(): int
     {
-        return array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + ($reservation->getStartDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
+        return array_reduce($this->reservations->toArray(), fn (int $count, Reservation $reservation) => $count + ($reservation->getStartDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
     }
 
     public function getDepartureVehicleCount(): int
     {
-        return array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + ($reservation->getEndDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
+        return array_reduce($this->reservations->toArray(), fn (int $count, Reservation $reservation) => $count + ($reservation->getEndDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
     }
 }

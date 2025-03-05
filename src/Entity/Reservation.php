@@ -20,7 +20,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Serializer\Annotation\Groups;
-
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ApiResource(
@@ -183,10 +182,13 @@ class Reservation
     public function removeDates(): static
     {
         $this->dates->clear();
+
         return $this;
     }
 
     /**
+     * @param Collection<int, Date> $dates
+     *
      * @return $this
      */
     public function addDates(Collection $dates): static
@@ -204,5 +206,4 @@ class Reservation
     {
         return $this->startDate->diff($this->endDate)->days + 1;
     }
-
 }
