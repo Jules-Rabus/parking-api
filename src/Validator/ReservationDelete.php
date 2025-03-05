@@ -1,10 +1,8 @@
 <?php
 
-
 namespace App\Validator;
 
 use Symfony\Component\Validator\Constraint;
-
 
 #[\Attribute]
 class ReservationDelete extends Constraint
@@ -18,5 +16,4 @@ class ReservationDelete extends Constraint
     {
         return self::CLASS_CONSTRAINT;
     }
-
 }

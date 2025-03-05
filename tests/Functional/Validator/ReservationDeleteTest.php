@@ -4,7 +4,6 @@ namespace App\Tests\Functional\Validator;
 
 use App\Entity\Reservation;
 use App\Enum\ReservationStatusEnum;
-use App\Factory\DateFactory;
 use App\Factory\ReservationFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -13,7 +12,6 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ReservationDeleteTest extends KernelTestCase
 {
-
     use Factories;
     use ResetDatabase;
 

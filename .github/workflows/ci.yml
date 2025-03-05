@@ -17,8 +17,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Build Docker images
         uses: docker/bake-action@v6
         with:
@@ -60,13 +62,13 @@ jobs:
         run: docker compose exec -T php bin/console -e test doctrine:migrations:up-to-date
 
       - name: Run PHP-CS-Fixer (Symfony rules)
-        run: docker compose exec -T php ./vendor/bin/php-cs-fixer fix --dry-run --diff --using-cache=no --rules=@Symfony
+        run: docker compose exec -T php ./vendor/bin/php-cs-fixer check
 
       - name: Run PHPStan
         run: docker compose exec -T php ./vendor/bin/phpstan analyse --level=6 src
 
       - name: Run PHPUnit
-        run: docker compose exec -T php bin/phpunit tests --coverage-clover=coverage.xml
+        run: docker compose exec -T -e XDEBUG_MODE=coverage php bin/phpunit tests --coverage-clover=coverage.xml
 
       - name: Upload Code Coverage
         uses: actions/upload-artifact@v4

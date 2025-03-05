@@ -2,8 +2,6 @@
 
 namespace App\Tests\Functional\Validator;
 
-use App\Entity\Date;
-use App\Entity\Reservation;
 use App\Enum\ReservationStatusEnum;
 use App\Factory\DateFactory;
 use App\Factory\ReservationFactory;
@@ -14,7 +12,6 @@ use Zenstruck\Foundry\Test\ResetDatabase;
 
 class ReservationAvailabilityTest extends KernelTestCase
 {
-
     use Factories;
     use ResetDatabase;
 

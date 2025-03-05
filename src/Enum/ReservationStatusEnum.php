@@ -8,6 +8,9 @@ enum ReservationStatusEnum: string
     case CONFIRMED = 'confirmed';
     case CANCELLED = 'cancelled';
 
+    /**
+     * @return ReservationStatusEnum[]
+     */
     public static function getValues(): array
     {
         return [
@@ -16,5 +19,4 @@ enum ReservationStatusEnum: string
             self::CANCELLED,
         ];
     }
-
 }

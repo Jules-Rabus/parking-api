@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Validator;
 
 use App\Entity\Reservation;
@@ -10,11 +9,9 @@ use Symfony\Component\Validator\ConstraintValidator;
 
 class ReservationDeleteValidator extends ConstraintValidator
 {
-
     public function validate(mixed $value, Constraint $constraint): void
     {
-        /* @var ReservationDelete $constraint */
-
+        /** @var ReservationDelete $constraint */
         if (!$value instanceof Reservation) {
             return;
         }
@@ -36,7 +33,5 @@ class ReservationDeleteValidator extends ConstraintValidator
                 ->setParameter('{{ status }}', $status->value)
                 ->addViolation();
         }
-
-
     }
 }

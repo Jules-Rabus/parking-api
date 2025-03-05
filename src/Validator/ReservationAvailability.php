@@ -4,7 +4,6 @@ namespace App\Validator;
 
 use Symfony\Component\Validator\Constraint;
 
-
 #[\Attribute]
 class ReservationAvailability extends Constraint
 {
@@ -14,5 +13,4 @@ class ReservationAvailability extends Constraint
     {
         return self::CLASS_CONSTRAINT;
     }
-
 }

@@ -4,15 +4,12 @@ namespace App\Factory;
 
 use App\Entity\Date;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
-use Zenstruck\Foundry\Persistence\Proxy;
-use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 
 /**
  * @extends PersistentProxyObjectFactory<Date>
  */
 final class DateFactory extends PersistentProxyObjectFactory
 {
-
     public static function class(): string
     {
         return Date::class;
@@ -34,6 +31,4 @@ final class DateFactory extends PersistentProxyObjectFactory
             'date' => self::faker()->dateTimeBetween('-1 year', '+1 year'),
         ];
     }
-
 }
-
