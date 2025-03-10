@@ -8,6 +8,8 @@ enum ReservationStatusEnum: string
     case CONFIRMED = 'confirmed';
     case CANCELLED = 'cancelled';
 
+    case NOT_CONFIRMED = 'not_confirmed';
+
     /**
      * @return ReservationStatusEnum[]
      */
@@ -17,6 +19,7 @@ enum ReservationStatusEnum: string
             self::PENDING,
             self::CONFIRMED,
             self::CANCELLED,
+            self::NOT_CONFIRMED,
         ];
     }
 }

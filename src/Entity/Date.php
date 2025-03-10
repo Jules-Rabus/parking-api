@@ -2,9 +2,11 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\DateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,16 +15,21 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: DateRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_DATE', columns: ['date'])]
+#[ApiFilter(DateFilter::class, properties: ['date'])]
+#[ApiFilter(OrderFilter::class, properties: ['date'])]
 #[ApiResource(
     operations: [
         new GetCollection(),
-        new Get(),
     ],
+    security: self::ACCESS,
 )]
+#[ORM\Entity(repositoryClass: DateRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_DATE', columns: ['date'])]
+#[ORM\Index(columns: ['date'])]
 class Date
 {
+    private const string ACCESS = 'is_granted("ROLE_ADMIN")';
+
     public const MAX_RESERVATIONS = 40;
 
     #[ORM\Id]
@@ -49,6 +56,12 @@ class Date
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    #[ApiProperty(identifier: true, readable: false)]
+    public function getDateIdentifier(): string
+    {
+        return $this->date->format('Y-m-d');
     }
 
     public function getDate(): ?\DateTimeImmutable
@@ -97,19 +110,27 @@ class Date
     }
 
     /**
-     * @return Collection<int, Reservation>
+     * @return ArrayCollection<int, Reservation>
      */
-    public function getArrivals(): Collection
+    public function getArrivals(): ArrayCollection
     {
-        return $this->reservations->filter(fn (Reservation $reservation) => $reservation->getStartDate() == $this->getDate());
+        if ($this->reservations->isEmpty()) {
+            return new ArrayCollection();
+        }
+
+        return $this->reservations->filter(fn (Reservation $reservation) => DATE::compareDates($reservation->getStartDate(), $this->getDate()));
     }
 
     /**
-     * @return Collection<int, Reservation>
+     * @return ArrayCollection<int, Reservation>
      */
-    public function getDepartures(): Collection
+    public function getDepartures(): ArrayCollection
     {
-        return $this->reservations->filter(fn (Reservation $reservation) => $reservation->getEndDate() == $this->getDate());
+        if ($this->reservations->isEmpty()) {
+            return new ArrayCollection();
+        }
+
+        return $this->reservations->filter(fn (Reservation $reservation) => Date::compareDates($reservation->getEndDate(), $this->getDate()));
     }
 
     public function getRemainingVehicleCapacity(): int
@@ -119,11 +140,16 @@ class Date
 
     public function getArrivalVehicleCount(): int
     {
-        return array_reduce($this->reservations->toArray(), fn (int $count, Reservation $reservation) => $count + ($reservation->getStartDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
+        return $this->getDepartures()->count();
     }
 
     public function getDepartureVehicleCount(): int
     {
-        return array_reduce($this->reservations->toArray(), fn (int $count, Reservation $reservation) => $count + ($reservation->getEndDate() == $this->getDate() ? $reservation->getVehicleCount() : 0), 0);
+        return $this->getArrivals()->count();
+    }
+
+    public static function compareDates(\DateTimeInterface $date1, \DateTimeInterface $date2): bool
+    {
+        return $date1->format('Y-m-d') === $date2->format('Y-m-d');
     }
 }
