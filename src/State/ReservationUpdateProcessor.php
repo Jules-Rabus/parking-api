@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 /**
  * @implements ProcessorInterface<Reservation, Reservation>
  */
-class ReservationPersistProcessor implements ProcessorInterface
+class ReservationUpdateProcessor implements ProcessorInterface
 {
     /**
      * @param ProcessorInterface<Reservation, Reservation|void> $persistProcessor

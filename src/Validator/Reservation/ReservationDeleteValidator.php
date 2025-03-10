@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Validator;
+namespace App\Validator\Reservation;
 
 use App\Entity\Reservation;
 use App\Enum\ReservationStatusEnum;
@@ -22,13 +22,13 @@ class ReservationDeleteValidator extends ConstraintValidator
                 ->addViolation();
         }
 
-        if ($value->getStartDate() <= $now && $value->getEndDate() >= $now) {
+        $status = $value->getStatus();
+        if ( ($value->getStartDate() <= $now && $value->getEndDate() >= $now) && ReservationStatusEnum::CONFIRMED === $status) {
             $this->context->buildViolation($constraint->messageCurrent)
                 ->addViolation();
         }
 
-        $status = $value->getStatus();
-        if (ReservationStatusEnum::CONFIRMED === $status || ReservationStatusEnum::PENDING === $status) {
+        if (ReservationStatusEnum::CONFIRMED === $status) {
             $this->context->buildViolation($constraint->messageStatus)
                 ->setParameter('{{ status }}', $status->value)
                 ->addViolation();

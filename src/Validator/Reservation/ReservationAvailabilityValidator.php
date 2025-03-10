@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Validator;
+namespace App\Validator\Reservation;
 
 use App\Entity\Reservation;
 use App\Enum\ReservationStatusEnum;
@@ -21,7 +21,8 @@ class ReservationAvailabilityValidator extends ConstraintValidator
             return;
         }
 
-        if (ReservationStatusEnum::CANCELLED === $value->getStatus()) {
+        $status = $value->getStatus();
+        if (ReservationStatusEnum::CANCELLED === $status && ReservationStatusEnum::NOT_CONFIRMED === $status) {
             return;
         }
 
