@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -12,8 +14,10 @@ use App\Entity\Traits\Timestampable;
 use App\Enum\ReservationStatusEnum;
 use App\Repository\ReservationRepository;
 use App\State\ReservationPersistProcessor;
-use App\Validator\ReservationAvailability;
-use App\Validator\ReservationDelete;
+use App\Validator\Reservation\ReservationAvailability;
+use App\Validator\Reservation\ReservationDelete;
+use App\Validator\Reservation\ReservationPersist;
+use App\Validator\Reservation\ReservationUpdate;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -22,13 +26,14 @@ use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
+#[ApiFilter(DateFilter::class, properties: ['startDate', 'endDate', 'bookingDate'])]
 #[ApiResource(
     operations: [
         new GetCollection(),
         new Get(),
-        new Post(validationContext: ['groups' => [self::WRITE]], validate: true, processor: ReservationPersistProcessor::class),
-        new Patch(validationContext: ['groups' => [self::UPDATE]], validate: true),
-        new Delete(validationContext: ['groups' => [self::DELETE]], validate: true),
+        new Post(validationContext: ['groups' => ['Default', self::WRITE]], validate: true, processor: ReservationPersistProcessor::class),
+        new Patch(validationContext: ['groups' => ['Default', self::UPDATE]], validate: true, processor: ReservationPersistProcessor::class),
+        new Delete(validationContext: ['groups' => ['Default', self::DELETE]], validate: true),
     ],
     normalizationContext: ['groups' => [self::READ]],
     denormalizationContext: ['groups' => [self::WRITE, self::UPDATE]],
@@ -36,6 +41,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
 #[ReservationAvailability]
+#[ReservationPersist(groups: [self::WRITE])]
+#[ReservationUpdate(groups: [self::UPDATE])]
 #[ReservationDelete(groups: [self::DELETE])]
 class Reservation
 {
@@ -46,7 +53,7 @@ class Reservation
     public const string UPDATE = 'reservation:update';
     public const string DELETE = 'reservation:delete';
 
-    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER") or 1 === 1';
+    private const string ACCESS = 'is_granted("ROLE_ADMIN")';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -54,19 +61,19 @@ class Reservation
     #[Groups([self::READ])]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     #[Assert\NotNull]
     #[Assert\LessThan(propertyPath: 'endDate')]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
-    private ?\DateTimeInterface $startDate = null;
+    private \DateTimeInterface $startDate;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     #[Assert\NotNull]
     #[Assert\GreaterThan(propertyPath: 'startDate')]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
-    private ?\DateTimeInterface $endDate = null;
+    private \DateTimeInterface $endDate;
 
     #[ORM\Column(type: Types::INTEGER)]
     #[Assert\Positive]
@@ -90,7 +97,6 @@ class Reservation
      */
     #[ORM\ManyToMany(targetEntity: Date::class, mappedBy: 'reservations')]
     #[Groups([self::READ])]
-    #[Assert\Count(min: 1)]
     private Collection $dates;
 
     public function __construct()
@@ -103,22 +109,22 @@ class Reservation
         return $this->id;
     }
 
-    public function getStartDate(): ?\DateTimeInterface
+    public function getStartDate(): \DateTimeInterface
     {
         return $this->startDate;
     }
 
-    public function setStartDate(?\DateTimeInterface $startDate): void
+    public function setStartDate(\DateTimeInterface $startDate): void
     {
         $this->startDate = $startDate;
     }
 
-    public function getEndDate(): ?\DateTimeInterface
+    public function getEndDate(): \DateTimeInterface
     {
         return $this->endDate;
     }
 
-    public function setEndDate(?\DateTimeInterface $endDate): void
+    public function setEndDate(\DateTimeInterface $endDate): void
     {
         $this->endDate = $endDate;
     }
