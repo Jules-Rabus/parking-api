@@ -22,7 +22,7 @@ class ReservationAvailabilityValidator extends ConstraintValidator
         }
 
         $status = $value->getStatus();
-        if (ReservationStatusEnum::CANCELLED === $status && ReservationStatusEnum::NOT_CONFIRMED === $status) {
+        if (ReservationStatusEnum::CANCELLED === $status || ReservationStatusEnum::NOT_CONFIRMED === $status) {
             return;
         }
 

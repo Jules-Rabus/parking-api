@@ -20,7 +20,6 @@ class ReservationUpdateValidator extends ConstraintValidator
     public function validate(mixed $value, Constraint $constraint): void
     {
         /** @var ReservationUpdate $constraint */
-
         if (!$value instanceof Reservation) {
             return;
         }
@@ -43,7 +42,7 @@ class ReservationUpdateValidator extends ConstraintValidator
         $originalData = $this->entityManager->getUnitOfWork()->getOriginalEntityData($value);
         $oldStatus = $originalData['status'] ?? null;
 
-        if ($oldStatus !== null && ReservationStatusEnum::PENDING !== $oldStatus) {
+        if (null !== $oldStatus && ReservationStatusEnum::PENDING !== $oldStatus) {
             $this->context->buildViolation($constraint->messageStatus)
                 ->setParameter('{{ status }}', $oldStatus->value)
                 ->addViolation();

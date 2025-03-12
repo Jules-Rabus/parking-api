@@ -29,10 +29,6 @@ class ReservationUpdateProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Reservation
     {
-        if (!$data instanceof Reservation) {
-            return $data;
-        }
-
         $data->removeDates();
         $dates = $this->dateRepository->findDatesBetween($data->getStartDate(), $data->getEndDate());
         foreach ($dates as $date) {

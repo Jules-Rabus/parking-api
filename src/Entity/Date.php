@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Traits\Timestampable;
 use App\Repository\DateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -28,6 +29,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['date'])]
 class Date
 {
+    use Timestampable;
+
     private const string ACCESS = 'is_granted("ROLE_ADMIN")';
 
     public const MAX_RESERVATIONS = 40;
@@ -118,7 +121,7 @@ class Date
             return new ArrayCollection();
         }
 
-        return $this->reservations->filter(fn (Reservation $reservation) => DATE::compareDates($reservation->getStartDate(), $this->getDate()));
+        return $this->reservations->filter(fn (Reservation $reservation) => Date::compareDates($reservation->getStartDate(), $this->getDate()));
     }
 
     /**
@@ -145,6 +148,7 @@ class Date
         foreach ($arrivals as $arrival) {
             $count += $arrival->getVehicleCount();
         }
+
         return $count;
     }
 
@@ -155,6 +159,7 @@ class Date
         foreach ($departures as $departure) {
             $count += $departure->getVehicleCount();
         }
+
         return $count;
     }
 
