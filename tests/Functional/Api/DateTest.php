@@ -46,7 +46,6 @@ final class DateTest extends AbstractTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
-
         $this->assertMatchesResourceItemJsonSchema(Date::class);
     }
 

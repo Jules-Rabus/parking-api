@@ -41,6 +41,7 @@ final class ReservationPersistTest extends AbstractTestCase
         ]);
 
         $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
         $this->assertJsonContains([
             'startDate' => $startDate->format('Y-m-d\T00:00:00+00:00'),
             'endDate' => $endDate->format('Y-m-d\T00:00:00+00:00'),
@@ -77,6 +78,7 @@ final class ReservationPersistTest extends AbstractTestCase
         ]);
 
         $this->assertResponseIsSuccessful();
+        $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
         $this->assertJsonContains([
             'startDate' => $startDate->format('Y-m-d\T00:00:00+00:00'),
             'endDate' => $endDate->format('Y-m-d\T00:00:00+00:00'),

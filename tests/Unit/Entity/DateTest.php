@@ -61,8 +61,10 @@ class DateTest extends TestCase
 
         $reservation = new Reservation();
         $reservation->setStartDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation->setEndDate(new \DateTimeImmutable('2021-01-02'));
         $reservation2 = new Reservation();
         $reservation2->setStartDate(new \DateTimeImmutable('2021-01-02'));
+        $reservation2->setEndDate(new \DateTimeImmutable('2021-01-03'));
         $date->addReservation($reservation);
         $date->addReservation($reservation2);
         $this->assertContains($reservation, $date->getArrivals());
@@ -79,20 +81,24 @@ class DateTest extends TestCase
     public function testGetDepartures()
     {
         $date = new Date();
-        $date->setDate(new \DateTimeImmutable('2021-01-01'));
+        $date->setDate(new \DateTimeImmutable('2021-02-01'));
         $this->assertEmpty($date->getDepartures());
 
         $reservation = new Reservation();
-        $reservation->setEndDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation->setStartDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation->setEndDate(new \DateTimeImmutable('2021-02-01'));
+
         $reservation2 = new Reservation();
-        $reservation2->setEndDate(new \DateTimeImmutable('2021-01-02'));
+        $reservation2->setStartDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation2->setEndDate(new \DateTimeImmutable('2021-02-02'));
+
         $date->addReservation($reservation);
         $date->addReservation($reservation2);
         $this->assertContains($reservation, $date->getDepartures());
         $this->assertCount(1, $date->getDepartures());
 
         $reservation3 = new Reservation();
-        $reservation3->setEndDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation3->setEndDate(new \DateTimeImmutable('2021-02-01'));
 
         $date->addReservation($reservation3);
         $this->assertContains($reservation3, $date->getDepartures());
@@ -154,23 +160,26 @@ class DateTest extends TestCase
     public function testGetDepartureVehicleCount()
     {
         $date = new Date();
-        $date->setDate(new \DateTimeImmutable('2021-01-01'));
+        $date->setDate(new \DateTimeImmutable('2021-03-01'));
         $this->assertEquals(0, $date->getDepartureVehicleCount());
 
         $reservation = new Reservation();
-        $reservation->setEndDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation->setStartDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation->setEndDate(new \DateTimeImmutable('2021-03-01'));
         $reservation->setVehicleCount(5);
         $date->addReservation($reservation);
 
         $this->assertEquals(5, $date->getDepartureVehicleCount());
 
         $reservation2 = new Reservation();
-        $reservation2->setEndDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation2->setStartDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation2->setEndDate(new \DateTimeImmutable('2021-03-01'));
         $reservation2->setVehicleCount(3);
         $date->addReservation($reservation2);
 
         $reservation3 = new Reservation();
-        $reservation3->setEndDate(new \DateTimeImmutable('2021-01-02'));
+        $reservation3->setStartDate(new \DateTimeImmutable('2021-01-01'));
+        $reservation3->setEndDate(new \DateTimeImmutable('2021-03-02'));
         $reservation3->setVehicleCount(2);
         $date->addReservation($reservation3);
 
