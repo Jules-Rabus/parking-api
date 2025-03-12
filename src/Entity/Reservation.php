@@ -22,7 +22,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -87,7 +86,6 @@ class Reservation
     public ReservationStatusEnum $status;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Gedmo\Timestampable(on: 'change', field: 'status', value: ReservationStatusEnum::CONFIRMED)]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ])]
     private ?\DateTimeInterface $bookingDate = null;
@@ -146,6 +144,9 @@ class Reservation
 
     public function setStatus(ReservationStatusEnum $status): void
     {
+        if (ReservationStatusEnum::CONFIRMED === $status && null === $this->bookingDate) {
+            $this->bookingDate = new \DateTimeImmutable();
+        }
         $this->status = $status;
     }
 
@@ -205,6 +206,16 @@ class Reservation
         }
 
         return $this;
+    }
+
+    public function getBookingDate(): ?\DateTimeInterface
+    {
+        return $this->bookingDate;
+    }
+
+    public function setBookingDate(?\DateTimeInterface $bookingDate): void
+    {
+        $this->bookingDate = $bookingDate;
     }
 
     #[Groups([self::READ])]
