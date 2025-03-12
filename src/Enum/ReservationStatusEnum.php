@@ -11,15 +11,15 @@ enum ReservationStatusEnum: string
     case NOT_CONFIRMED = 'not_confirmed';
 
     /**
-     * @return ReservationStatusEnum[]
+     * @return array<string>
      */
     public static function getValues(): array
     {
         return [
-            self::PENDING,
-            self::CONFIRMED,
-            self::CANCELLED,
-            self::NOT_CONFIRMED,
+            self::PENDING->value,
+            self::CONFIRMED->value,
+            self::CANCELLED->value,
+            self::NOT_CONFIRMED->value,
         ];
     }
 }

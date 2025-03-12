@@ -53,7 +53,6 @@ class Reservation
     public const string WRITE = 'reservation:write';
     public const string UPDATE = 'reservation:update';
     public const string DELETE = 'reservation:delete';
-
     private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER") or 1 === 1';
 
     #[ORM\Id]
@@ -99,6 +98,13 @@ class Reservation
     #[ORM\ManyToMany(targetEntity: Date::class, mappedBy: 'reservations')]
     #[Groups([self::READ])]
     private Collection $dates;
+
+    #[ORM\OneToOne(inversedBy: 'reservation', cascade: ['persist', 'remove'])]
+    private ?Message $message = null;
+
+    #[ORM\ManyToOne(inversedBy: 'reservations')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $holder = null;
 
     public function __construct()
     {
@@ -213,4 +219,49 @@ class Reservation
     {
         return $this->startDate->diff($this->endDate)->days + 1;
     }
+
+    public function getMessage(): ?Message
+    {
+        return $this->message;
+    }
+
+    public function setMessage(?Message $message): static
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
+    public function getHolder(): ?User
+    {
+        return $this->holder;
+    }
+
+    public function setHolder(?User $holder): static
+    {
+        $this->holder = $holder;
+
+        return $this;
+    }
+
+    #[Groups([self::READ])]
+    public function getPrice(): int
+    {
+        $duration = $this->getDuration();
+
+        // price under 5 days
+        if ($duration < 5) {
+            $price = [1 => 5, 2 => 8, 3 => 10, 4 => 10];
+            return $price[$duration];
+        }
+
+        // price over 5 days and under 29 days
+        if ($duration < 29) {
+            return 10 + round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
+        }
+
+        // price over 28 days
+        return 70 + ($duration - 28) * 2;
+    }
+
 }
