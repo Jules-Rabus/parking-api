@@ -34,6 +34,7 @@ final class ReservationFactory extends PersistentProxyObjectFactory
             'vehicleCount' => self::faker()->numberBetween(1, 5),
             'status' => self::faker()->randomElement([ReservationStatusEnum::CONFIRMED, ReservationStatusEnum::PENDING]),
             'dates' => [DateFactory::createOne()],
+            'holder' => UserFactory::createOne(),
         ];
     }
 }
