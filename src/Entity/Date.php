@@ -140,12 +140,22 @@ class Date
 
     public function getArrivalVehicleCount(): int
     {
-        return $this->getDepartures()->count();
+        $count = 0;
+        $arrivals = $this->getArrivals();
+        foreach ($arrivals as $arrival) {
+            $count += $arrival->getVehicleCount();
+        }
+        return $count;
     }
 
     public function getDepartureVehicleCount(): int
     {
-        return $this->getArrivals()->count();
+        $count = 0;
+        $departures = $this->getDepartures();
+        foreach ($departures as $departure) {
+            $count += $departure->getVehicleCount();
+        }
+        return $count;
     }
 
     public static function compareDates(\DateTimeInterface $date1, \DateTimeInterface $date2): bool
