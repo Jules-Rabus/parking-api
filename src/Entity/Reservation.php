@@ -53,7 +53,6 @@ class Reservation
     public const string WRITE = 'reservation:write';
     public const string UPDATE = 'reservation:update';
     public const string DELETE = 'reservation:delete';
-
     private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER") or 1 === 1';
 
     #[ORM\Id]
@@ -99,6 +98,9 @@ class Reservation
     #[ORM\ManyToMany(targetEntity: Date::class, mappedBy: 'reservations')]
     #[Groups([self::READ])]
     private Collection $dates;
+
+    #[ORM\OneToOne(inversedBy: 'reservation', cascade: ['persist', 'remove'])]
+    private ?Message $message = null;
 
     public function __construct()
     {
@@ -212,5 +214,17 @@ class Reservation
     public function getDuration(): int
     {
         return $this->startDate->diff($this->endDate)->days + 1;
+    }
+
+    public function getMessage(): ?Message
+    {
+        return $this->message;
+    }
+
+    public function setMessage(?Message $message): static
+    {
+        $this->message = $message;
+
+        return $this;
     }
 }
