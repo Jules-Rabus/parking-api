@@ -8,6 +8,7 @@ use App\Entity\User;
 class AuthenticationTest extends ApiTestCase
 {
 
+    // Api doc
     public function testLogin(): void
     {
         $client = self::createClient();
@@ -23,8 +24,7 @@ class AuthenticationTest extends ApiTestCase
         $manager->persist($user);
         $manager->flush();
 
-        // retrieve a token
-        $response = $client->request('POST', '/auth', [
+        $response = $client->request('POST', '/login', [
             'headers' => ['Content-Type' => 'application/json'],
             'json' => [
                 'email' => 'test@example.com',
@@ -36,12 +36,10 @@ class AuthenticationTest extends ApiTestCase
         $this->assertResponseIsSuccessful();
         $this->assertArrayHasKey('token', $json);
 
-        // test not authorized
-        $client->request('GET', '/greetings');
+        $client->request('GET', '/users');
         $this->assertResponseStatusCodeSame(401);
 
-        // test authorized
-        $client->request('GET', '/greetings', ['auth_bearer' => $json['token']]);
+        $client->request('GET', '/users', ['auth_bearer' => $json['token']]);
         $this->assertResponseIsSuccessful();
     }
 }
