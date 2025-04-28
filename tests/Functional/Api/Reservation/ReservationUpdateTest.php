@@ -66,8 +66,8 @@ final class ReservationUpdateTest extends AbstractTestCase
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
         $this->assertJsonContains([
-            'startDate' => $updatedStartDate->format('Y-m-d\T00:00:00+00:00'),
-            'endDate' => $updatedEndDate->format('Y-m-d\T00:00:00+00:00'),
+            'startDate' => $updatedStartDate->format('Y-m-d\T00:00:00+02:00'),
+            'endDate' => $updatedEndDate->format('Y-m-d\T00:00:00+02:00'),
         ]);
     }
 

@@ -43,8 +43,8 @@ final class ReservationPersistTest extends AbstractTestCase
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
         $this->assertJsonContains([
-            'startDate' => $startDate->format('Y-m-d\T00:00:00+00:00'),
-            'endDate' => $endDate->format('Y-m-d\T00:00:00+00:00'),
+            'startDate' => $startDate->format('Y-m-d\T00:00:00+02:00'),
+            'endDate' => $endDate->format('Y-m-d\T00:00:00+02:00'),
             'vehicleCount' => 5,
             'status' => ReservationStatusEnum::PENDING->value,
             'dates' => $dates,
@@ -80,12 +80,12 @@ final class ReservationPersistTest extends AbstractTestCase
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
         $this->assertJsonContains([
-            'startDate' => $startDate->format('Y-m-d\T00:00:00+00:00'),
-            'endDate' => $endDate->format('Y-m-d\T00:00:00+00:00'),
+            'startDate' => $startDate->format('Y-m-d\T00:00:00+02:00'),
+            'endDate' => $endDate->format('Y-m-d\T00:00:00+02:00'),
             'vehicleCount' => 5,
             'status' => ReservationStatusEnum::CONFIRMED->value,
             'dates' => $dates,
-            'bookingDate' => (new \DateTime())->format('Y-m-d\TH:i:s+00:00'),
+            'bookingDate' => (new \DateTime())->format('Y-m-d\TH:i:s+02:00'),
         ]);
 
         $this->assertMatchesResourceItemJsonSchema(Reservation::class);
@@ -118,8 +118,8 @@ final class ReservationPersistTest extends AbstractTestCase
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
         $this->assertJsonContains([
-            'startDate' => $startDate->format('Y-m-d\T00:00:00+00:00'),
-            'endDate' => $endDate->format('Y-m-d\T00:00:00+00:00'),
+            'startDate' => $startDate->format('Y-m-d\T00:00:00+02:00'),
+            'endDate' => $endDate->format('Y-m-d\T00:00:00+02:00'),
             'vehicleCount' => 5,
             'status' => ReservationStatusEnum::PENDING->value,
             'dates' => $dates,

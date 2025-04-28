@@ -7,7 +7,6 @@ services:
     environment:
       APP_SECRET: ${APP_SECRET}
   
-  
   database:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
