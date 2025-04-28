@@ -22,7 +22,6 @@ services:
                 published: ${HTTP3_PORT:-443}
                 protocol: udp
     
-    ###> doctrine/doctrine-bundle ###
     database:
         image: postgres:${POSTGRES_VERSION:-16}-alpine
         environment:

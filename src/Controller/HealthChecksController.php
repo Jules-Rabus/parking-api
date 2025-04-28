@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\DBAL\Connection;
 
 class HealthChecksController extends AbstractController
 {
@@ -21,6 +21,7 @@ class HealthChecksController extends AbstractController
     {
         try {
             $connection->executeQuery('SELECT 1');
+
             return new JsonResponse(['status' => 'ready'], Response::HTTP_OK);
         } catch (\Throwable $e) {
             return new JsonResponse(['status' => 'error', 'message' => 'Database unreachable'], Response::HTTP_SERVICE_UNAVAILABLE);
