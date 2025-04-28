@@ -75,7 +75,6 @@ class ResetPasswordController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
         TranslatorInterface $translator,
-        PasswordHelper $ph,
         string $token = null
     ): JsonResponse {
         if ($token) {
