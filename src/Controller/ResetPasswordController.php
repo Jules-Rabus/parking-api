@@ -42,9 +42,6 @@ class ResetPasswordController extends AbstractController
         $this->entityManager = $entityManager;
     }
 
-    /**
-     * Display & process form to request a password reset.
-     */
     #[Route('', name : 'app_forgot_password_request')]
     public function request(
         Request $request,
@@ -136,6 +133,7 @@ class ResetPasswordController extends AbstractController
         $this->cleanSessionAfterReset();
 
         return new JsonResponse([
+            'success' => true,
             'message' => 'Mot de passe réinitialisé.',
         ], JsonResponse::HTTP_OK);
     }

@@ -68,6 +68,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups([self::WRITE, self::UPDATE])]
     private ?string $plainPassword = null;
 
+    #[ORM\OneToMany(targetEntity: PasswordResetToken::class, mappedBy: 'user')]
+    private $resetToken = null;
+
     public function getId(): ?int
     {
         return $this->id;
