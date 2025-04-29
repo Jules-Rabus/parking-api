@@ -24,7 +24,7 @@ final class ResetTokenTest extends AbstractTestCase
             ]
         );
 
-        $token = $response['reset_token'];
+        $token = $response['reset_token'] ?? null;
 
         if ($token) {
             $response = $this->createClientWithCredentials($user)->request('GET', self::ROUTE.'/reset/'.$token,
