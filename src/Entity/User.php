@@ -8,14 +8,16 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\Repository\UserRepository;
 use App\State\UserPasswordHasher;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\PasswordStrength;
 
 #[ApiResource(
     operations: [
@@ -23,7 +25,6 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(security: self::ACCESS),
         new Post(validationContext: ['groups' => ['Default', self::WRITE]], processor: UserPasswordHasher::class),
         new Patch(security: self::ACCESS, processor: UserPasswordHasher::class),
-        new Put(security: self::ACCESS, processor: UserPasswordHasher::class),
         new Delete(security: self::ACCESS),
     ],
     normalizationContext: ['groups' => self::READ],
@@ -65,11 +66,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[Assert\NotBlank(groups: [self::WRITE])]
+    #[PasswordStrength([
+        'minScore' => PasswordStrength::STRENGTH_VERY_STRONG,
+    ])]
     #[Groups([self::WRITE, self::UPDATE])]
     private ?string $plainPassword = null;
 
-    #[ORM\OneToMany(targetEntity: PasswordResetToken::class, mappedBy: 'user')]
-    private $resetToken = null;
+    /**
+     * @var Collection<int, Phone>
+     */
+    #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'Owner')]
+    private Collection $phones;
+
+    public function __construct()
+    {
+        $this->phones = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -156,5 +168,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Phone>
+     */
+    public function getPhones(): Collection
+    {
+        return $this->phones;
+    }
+
+    public function addPhone(Phone $phone): static
+    {
+        if (!$this->phones->contains($phone)) {
+            $this->phones->add($phone);
+            $phone->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removePhone(Phone $phone): static
+    {
+        if ($this->phones->removeElement($phone)) {
+            // set the owning side to null (unless already changed)
+            if ($phone->getOwner() === $this) {
+                $phone->setOwner(null);
+            }
+        }
+
+        return $this;
     }
 }

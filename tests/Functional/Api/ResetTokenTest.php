@@ -12,30 +12,40 @@ final class ResetTokenTest extends AbstractTestCase
 
     public function testResetPassword(): void
     {
-        UserFactory::CreateMany(48);
-
         $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+        $user->setEmail('melvin.pierre.mp@gmail.com');
+        $user->_save();
 
-        $response = $this->createClientWithCredentials($user)->request('GET', self::ROUTE,
-            [
-                'headers' => [
-                    'Accept' => 'application/ld+json',
-                ],
-            ]
-        );
+        $response = $this->createClientWithCredentials($user)->request('POST', self::ROUTE, [
+            'headers' => [
+                'Accept' => 'application/ld+json',
+                'Content-Type' => 'application/json'
+            ],
+            'json' => [
+                'email' => $user->getEmail(),
+            ],
+        ]);
 
-        $token = $response['reset_token'] ?? null;
+        $array = $response->toArray();
+
+        $token = $array['reset_token'] ?? null;
 
         if ($token) {
-            $response = $this->createClientWithCredentials($user)->request('GET', self::ROUTE.'/reset/'.$token,
+            $response = $this->createClientWithCredentials($user)->request('POST', self::ROUTE.'/reset/'.$token,
                 [
                     'headers' => [
                         'Accept' => 'application/ld+json',
+                        'Content-Type' => 'application/json'
+                    ],
+                    'json' => [
+                        'password' => 'Password1234*',
                     ],
                 ]
             );
 
-            if ($response['success']) {
+            $array = $response->toArray();
+
+            if (isset($array['success'])) {
                 $this->assertResponseIsSuccessful();
                 $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
             }

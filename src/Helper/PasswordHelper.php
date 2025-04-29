@@ -39,13 +39,6 @@ class PasswordHelper
         $this->entityManager = $entityManager;
     }
 
-    /**
-     * @param string              $emailFormData
-     * @param MailerInterface $mailer
-     * @param TranslatorInterface $translator
-     *
-     * @return RedirectResponse
-     */
     public function processSendingPasswordResetEmail(
         Client $user,
         MailerInterface $mailer
@@ -83,9 +76,6 @@ class PasswordHelper
         return $this->checkEmail();
     }
 
-    /**
-     * Confirmation page after a user has requested a password reset.
-     */
     public function checkEmail(): JsonResponse
     {
         // Generate a fake token if the user does not exist or someone hit this page directly.
