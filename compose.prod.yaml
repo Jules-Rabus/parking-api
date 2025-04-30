@@ -6,3 +6,17 @@ services:
       target: frankenphp_prod
     environment:
       APP_SECRET: ${APP_SECRET}
+  
+  database:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  
+  uptime-kuma:
+    container_name: uptime-kuma
+    image: louislam/uptime-kuma:1.23.16-alpine
+    restart: unless-stopped
+    ports:
+      - 3001:3001
+    volumes:
+      - ./deployment/uptime-kuma:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock

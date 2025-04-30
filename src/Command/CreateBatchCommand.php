@@ -28,6 +28,7 @@ class CreateBatchCommand extends Command
             $this->batchHandler->process();
         } catch (\Exception $e) {
             $io->error($e->getMessage());
+
             return Command::FAILURE;
         }
 

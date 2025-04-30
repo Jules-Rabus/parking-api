@@ -3,9 +3,14 @@
 namespace App\Tests\Functional\Api;
 
 use App\Factory\UserFactory;
+use Zenstruck\Foundry\Test\Factories;
+use Zenstruck\Foundry\Test\ResetDatabase;
 
 final class LoginTest extends AbstractTestCase
 {
+    use Factories;
+    use ResetDatabase;
+
     private const string ROUTE = '/login';
 
     public function testLogin(): void

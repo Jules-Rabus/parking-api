@@ -23,7 +23,7 @@ class ReservationDeleteValidator extends ConstraintValidator
         }
 
         $status = $value->getStatus();
-        if ( ($value->getStartDate() <= $now && $value->getEndDate() >= $now) && ReservationStatusEnum::CONFIRMED === $status) {
+        if (($value->getStartDate() <= $now && $value->getEndDate() >= $now) && ReservationStatusEnum::CONFIRMED === $status) {
             $this->context->buildViolation($constraint->messageCurrent)
                 ->addViolation();
         }

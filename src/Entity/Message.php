@@ -65,9 +65,11 @@ class Message
     #[Groups([self::READ])]
     private ?Reservation $reservation = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(nullable: true)]
     private ?array $cases = null;
-
 
     public function __construct()
     {
@@ -160,12 +162,12 @@ class Message
     public function setReservation(?Reservation $reservation): static
     {
         // unset the owning side of the relation if necessary
-        if ($reservation === null && $this->reservation !== null) {
+        if (null === $reservation && null !== $this->reservation) {
             $this->reservation->setMessage(null);
         }
 
         // set the owning side of the relation if necessary
-        if ($reservation !== null && $reservation->getMessage() !== $this) {
+        if (null !== $reservation && $reservation->getMessage() !== $this) {
             $reservation->setMessage($this);
         }
 

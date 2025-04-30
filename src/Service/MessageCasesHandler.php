@@ -4,19 +4,12 @@ namespace App\Service;
 
 use App\Entity\Batch;
 use App\Entity\Message;
-use App\Enum\BatchStatusEnum;
 use App\Enum\MessageStatusEnum;
 use App\Factory\MessageFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Scheduler\Attribute\AsCronTask;
-use Symfony\Component\Uid\Uuid;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[AsCronTask('%env(CRON_SCHEDULER_BATCH)%', method: 'process')]
@@ -26,37 +19,35 @@ class MessageCasesHandler
     private $batchRepository;
 
     private const CHAT_BASE_URL = 'http://host.docker.internal:1234';
-    private const CHAT_COMPLETION_URL = self::CHAT_BASE_URL . '/v1/chat/completions';
+    private const CHAT_COMPLETION_URL = self::CHAT_BASE_URL.'/v1/chat/completions';
     private const CASES = [
         'book' => ['title' => "l'utilisateur veut réserver et n'a pas de réservation", 'type' => 'boolean'],
         'cancelled' => ['title' => "l'utilisateur veut annuler", 'type' => 'boolean'],
         'modify' => ['title' => "l'utilisateur veut modifier", 'type' => 'boolean'],
         'address' => ['title' => "l'utilisateur veut l'adresse", 'type' => 'boolean'],
         'code' => ['title' => "l'utilisateur veut un code", 'type' => 'boolean'],
-        'startDate' => ['title' => "donne la date de début de la réservation si elle existe", 'type' => 'string'],
-        'endDate' => ['title' => "donne la date de fin de la réservation si elle existe", 'type' => 'string'],
-        'vehicleCount' => ['title' => "donne le nombre de véhicules de la réservation par défaut 1", 'type' => 'integer'],
+        'startDate' => ['title' => 'donne la date de début de la réservation si elle existe', 'type' => 'string'],
+        'endDate' => ['title' => 'donne la date de fin de la réservation si elle existe', 'type' => 'string'],
+        'vehicleCount' => ['title' => 'donne le nombre de véhicules de la réservation par défaut 1', 'type' => 'integer'],
     ];
 
-    private const SYSTEM_PROMPT = 'You are a parking customer service. Your task is to categorize the customer inquiry into the following predefined cases: ' .
-    self::CASES['book']['title'] . ', ' .
-    self::CASES['cancelled']['title'] . ', ' .
-    self::CASES['modify']['title'] . ', ' .
-    self::CASES['address']['title'] . ', ' .
-    self::CASES['code']['title'] . ', ' .
-    self::CASES['startDate']['title'] . ', ' .
-    self::CASES['endDate']['title'] . ', ' .
-    self::CASES['vehicleCount']['title'];
-
+    private const SYSTEM_PROMPT = 'You are a parking customer service. Your task is to categorize the customer inquiry into the following predefined cases: '.
+        self::CASES['book']['title'].', '.
+        self::CASES['cancelled']['title'].', '.
+        self::CASES['modify']['title'].', '.
+        self::CASES['address']['title'].', '.
+        self::CASES['code']['title'].', '.
+        self::CASES['startDate']['title'].', '.
+        self::CASES['endDate']['title'].', '.
+        self::CASES['vehicleCount']['title'];
 
     public function __construct(
-        private LoggerInterface                                $logger,
-        private readonly EntityManagerInterface                $entityManager,
-        private readonly HttpClientInterface                   $httpClient,
+        private LoggerInterface $logger,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly HttpClientInterface $httpClient,
         #[Autowire(env: 'AI_API_KEY')] private readonly string $aiApiKey,
-        #[Autowire(env: 'AI_MODEL')] private readonly string   $aiModel,
-    )
-    {
+        #[Autowire(env: 'AI_MODEL')] private readonly string $aiModel,
+    ) {
         $this->messageRepository = $this->entityManager->getRepository(Message::class);
         $this->batchRepository = $this->entityManager->getRepository(Batch::class);
     }
@@ -80,39 +71,40 @@ class MessageCasesHandler
     {
         $data = [
             'model' => $this->aiModel,
-            //'max_tokens' => 250,
+            // 'max_tokens' => 250,
             'temperature' => 0.15,
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => self::SYSTEM_PROMPT . '. Today is ' . date('Y-m-d')
+                    'content' => self::SYSTEM_PROMPT.'. Today is '.date('Y-m-d'),
                 ],
                 [
                     'role' => 'user',
-                    'content' => $message->getContent()
-                ]
+                    'content' => $message->getContent(),
+                ],
             ],
-            'response_format' => $this->generateJsonSchema()
+            'response_format' => $this->generateJsonSchema(),
         ];
+
         return json_encode($data);
     }
 
     private function sendMessage(Message $message): void
     {
-        $this->logger->info('Sending message ' . $message->getId());
+        $this->logger->info('Sending message '.$message->getId());
 
         $body = $this->generateJsonl($message);
 
         $response = $this->httpClient->request('POST', self::CHAT_COMPLETION_URL, [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->aiApiKey,
+                'Authorization' => 'Bearer '.$this->aiApiKey,
                 'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
+                'Accept' => 'application/json',
             ],
-            'body' => $body
+            'body' => $body,
         ]);
 
-        if ($response->getStatusCode() !== 200) {
+        if (200 !== $response->getStatusCode()) {
             $this->logger->error('Message send failed', [
                 'status' => $response->getStatusCode(),
                 'content' => $response->getContent(false),
@@ -137,13 +129,12 @@ class MessageCasesHandler
 
     private function generateJsonSchema(): array
     {
-
         $properties = [];
         $required = [];
         foreach (self::CASES as $key => $value) {
             $properties[$key] = [
                 'title' => $value['title'],
-                'type' => $value['type']
+                'type' => $value['type'],
             ];
             $required[] = $key;
         }
@@ -156,11 +147,11 @@ class MessageCasesHandler
                     'type' => 'object',
                     'properties' => $properties,
                     'required' => $required,
-                    'additionalProperties' => false
+                    'additionalProperties' => false,
                 ],
                 'name' => 'cases',
-                'strict' => true
-            ]
+                'strict' => true,
+            ],
         ];
     }
 }

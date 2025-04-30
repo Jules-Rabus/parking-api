@@ -3,12 +3,11 @@
 namespace App\Factory;
 
 use App\Entity\Message;
-use App\Entity\Reservation;
 use App\Enum\MessageStatusEnum;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Reservation>
+ * @extends PersistentProxyObjectFactory<Message>
  */
 final class MessageFactory extends PersistentProxyObjectFactory
 {
@@ -33,7 +32,7 @@ final class MessageFactory extends PersistentProxyObjectFactory
             'content' => self::faker()->text(),
             'status' => self::faker()->randomElement(MessageStatusEnum::getValues()),
             'reservation' => ReservationFactory::createOne(),
-            'phone' => PhoneFactory::createOne()
+            'phone' => PhoneFactory::createOne(),
         ];
     }
 }

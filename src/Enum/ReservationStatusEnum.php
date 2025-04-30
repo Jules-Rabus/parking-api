@@ -2,6 +2,9 @@
 
 namespace App\Enum;
 
+/**
+ * @codeCoverageIgnore
+ */
 enum ReservationStatusEnum: string
 {
     case PENDING = 'pending';

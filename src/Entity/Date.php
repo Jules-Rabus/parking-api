@@ -8,13 +8,13 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Traits\Timestampable;
 use App\Repository\DateRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-
 
 #[ApiFilter(DateFilter::class, properties: ['date'])]
 #[ApiFilter(OrderFilter::class, properties: ['date'])]
@@ -29,7 +29,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['date'])]
 class Date
 {
-    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER") or 1 === 1';
+    use Timestampable;
+
+    private const string ACCESS = 'is_granted("ROLE_ADMIN")';
 
     public const MAX_RESERVATIONS = 40;
 
@@ -119,7 +121,7 @@ class Date
             return new ArrayCollection();
         }
 
-        return $this->reservations->filter(fn (Reservation $reservation) => DATE::compareDates($reservation->getStartDate(), $this->getDate()));
+        return $this->reservations->filter(fn (Reservation $reservation) => Date::compareDates($reservation->getStartDate(), $this->getDate()));
     }
 
     /**
@@ -127,7 +129,7 @@ class Date
      */
     public function getDepartures(): ArrayCollection
     {
-        if($this->reservations->isEmpty()) {
+        if ($this->reservations->isEmpty()) {
             return new ArrayCollection();
         }
 
@@ -141,12 +143,24 @@ class Date
 
     public function getArrivalVehicleCount(): int
     {
-        return $this->getDepartures()->count();
+        $count = 0;
+        $arrivals = $this->getArrivals();
+        foreach ($arrivals as $arrival) {
+            $count += $arrival->getVehicleCount();
+        }
+
+        return $count;
     }
 
     public function getDepartureVehicleCount(): int
     {
-        return $this->getArrivals()->count();
+        $count = 0;
+        $departures = $this->getDepartures();
+        foreach ($departures as $departure) {
+            $count += $departure->getVehicleCount();
+        }
+
+        return $count;
     }
 
     public static function compareDates(\DateTimeInterface $date1, \DateTimeInterface $date2): bool

@@ -18,7 +18,7 @@ class ReservationPersistValidator extends ConstraintValidator
 
         $status = $value->getStatus();
 
-        if ( $status === ReservationStatusEnum::CANCELLED && $status === ReservationStatusEnum::NOT_CONFIRMED ) {
+        if (ReservationStatusEnum::CANCELLED === $status || ReservationStatusEnum::NOT_CONFIRMED === $status) {
             $this->context->buildViolation($constraint->messageStatus)
                 ->setParameter('{{ status }}', $status->value)
                 ->addViolation();

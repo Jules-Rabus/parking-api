@@ -76,7 +76,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Phone>
      */
-    #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'Owner')]
+    #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'owner')]
     private Collection $phones;
 
     /**
@@ -115,7 +115,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string)$this->email;
+        return (string) $this->email;
     }
 
     /**
@@ -246,9 +246,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $confirmedReservations = $reservations->filter(function (Reservation $reservation) {
-            return $reservation->getStatus() === ReservationStatusEnum::CONFIRMED;
+            return ReservationStatusEnum::CONFIRMED === $reservation->getStatus();
         });
+
         return $confirmedReservations->count();
     }
-
 }

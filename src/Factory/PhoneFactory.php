@@ -2,14 +2,11 @@
 
 namespace App\Factory;
 
-use App\Entity\Message;
 use App\Entity\Phone;
-use App\Entity\Reservation;
-use App\Enum\MessageStatusEnum;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
 /**
- * @extends PersistentProxyObjectFactory<Reservation>
+ * @extends PersistentProxyObjectFactory<Phone>
  */
 final class PhoneFactory extends PersistentProxyObjectFactory
 {

@@ -44,8 +44,6 @@ class Batch
     #[ORM\ManyToMany(targetEntity: Message::class, inversedBy: 'batches')]
     private Collection $messages;
 
-
-
     #[ORM\Column(type: 'uuid', nullable: true)]
     private ?Uuid $fileId = null;
 

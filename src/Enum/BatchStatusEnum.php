@@ -4,8 +4,7 @@ namespace App\Enum;
 
 enum BatchStatusEnum: string
 {
-
-    case CREATED = 'created';	//the batch has been created and is waiting for the input file to be uploaded
+    case CREATED = 'created';	// the batch has been created and is waiting for the input file to be uploaded
 
     // CASE FROM MISTRAL
 

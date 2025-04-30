@@ -4,7 +4,6 @@ namespace App\Enum;
 
 enum MessageCaseEnum: string
 {
-
     /* TODO: Add your message cases here */
 
     /**
@@ -13,7 +12,6 @@ enum MessageCaseEnum: string
     public static function getValues(): array
     {
         return [
-
         ];
     }
 }

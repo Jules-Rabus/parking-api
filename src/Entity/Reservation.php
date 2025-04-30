@@ -18,7 +18,6 @@ use App\Validator\Reservation\ReservationAvailability;
 use App\Validator\Reservation\ReservationDelete;
 use App\Validator\Reservation\ReservationPersist;
 use App\Validator\Reservation\ReservationUpdate;
-use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -53,7 +52,7 @@ class Reservation
     public const string WRITE = 'reservation:write';
     public const string UPDATE = 'reservation:update';
     public const string DELETE = 'reservation:delete';
-    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER") or 1 === 1';
+    private const string ACCESS = 'is_granted("ROLE_ADMIN")';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -66,14 +65,14 @@ class Reservation
     #[Assert\LessThan(propertyPath: 'endDate')]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
-    private DateTimeInterface $startDate;
+    private \DateTimeInterface $startDate;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     #[Assert\NotNull]
     #[Assert\GreaterThan(propertyPath: 'startDate')]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
-    private DateTimeInterface $endDate;
+    private \DateTimeInterface $endDate;
 
     #[ORM\Column(type: Types::INTEGER)]
     #[Assert\Positive]
@@ -100,10 +99,12 @@ class Reservation
     private Collection $dates;
 
     #[ORM\OneToOne(inversedBy: 'reservation', cascade: ['persist', 'remove'])]
+    #[Groups([self::READ])]
     private ?Message $message = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private ?User $holder = null;
 
     public function __construct()
@@ -116,22 +117,22 @@ class Reservation
         return $this->id;
     }
 
-    public function getStartDate(): DateTimeInterface
+    public function getStartDate(): \DateTimeInterface
     {
         return $this->startDate;
     }
 
-    public function setStartDate(DateTimeInterface $startDate): void
+    public function setStartDate(\DateTimeInterface $startDate): void
     {
         $this->startDate = $startDate;
     }
 
-    public function getEndDate(): DateTimeInterface
+    public function getEndDate(): \DateTimeInterface
     {
         return $this->endDate;
     }
 
-    public function setEndDate(DateTimeInterface $endDate): void
+    public function setEndDate(\DateTimeInterface $endDate): void
     {
         $this->endDate = $endDate;
     }
@@ -153,6 +154,9 @@ class Reservation
 
     public function setStatus(ReservationStatusEnum $status): void
     {
+        if (ReservationStatusEnum::CONFIRMED === $status && null === $this->bookingDate) {
+            $this->bookingDate = new \DateTimeImmutable();
+        }
         $this->status = $status;
     }
 
@@ -214,6 +218,16 @@ class Reservation
         return $this;
     }
 
+    public function getBookingDate(): ?\DateTimeInterface
+    {
+        return $this->bookingDate;
+    }
+
+    public function setBookingDate(?\DateTimeInterface $bookingDate): void
+    {
+        $this->bookingDate = $bookingDate;
+    }
+
     #[Groups([self::READ])]
     public function getDuration(): int
     {
@@ -252,16 +266,16 @@ class Reservation
         // price under 5 days
         if ($duration < 5) {
             $price = [1 => 5, 2 => 8, 3 => 10, 4 => 10];
+
             return $price[$duration];
         }
 
         // price over 5 days and under 29 days
         if ($duration < 29) {
-            return 10 + round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
+            return 10 + (int) round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
         }
 
         // price over 28 days
         return 70 + ($duration - 28) * 2;
     }
-
 }

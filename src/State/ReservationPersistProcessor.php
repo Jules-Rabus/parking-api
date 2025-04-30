@@ -3,13 +3,9 @@
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\Metadata\Patch;
 use ApiPlatform\State\ProcessorInterface;
-use App\Entity\Date;
 use App\Entity\Reservation;
-use App\Enum\ReservationStatusEnum;
 use App\Repository\DateRepository;
-use Doctrine\ORM\EntityManager;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
@@ -22,8 +18,8 @@ class ReservationPersistProcessor implements ProcessorInterface
      */
     public function __construct(
         #[Autowire(service: 'api_platform.doctrine.orm.state.persist_processor')]
-        private ProcessorInterface $persistProcessor,
-        private DateRepository $dateRepository,
+        private readonly ProcessorInterface $persistProcessor,
+        private readonly DateRepository $dateRepository,
     ) {
     }
 
@@ -33,10 +29,6 @@ class ReservationPersistProcessor implements ProcessorInterface
      */
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): Reservation
     {
-        if(!$data instanceof Reservation) {
-            return $data;
-        }
-
         $data->removeDates();
         $dates = $this->dateRepository->findDatesBetween($data->getStartDate(), $data->getEndDate());
         foreach ($dates as $date) {
