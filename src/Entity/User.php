@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\Repository\UserRepository;
 use App\State\UserPasswordHasher;
 use Doctrine\ORM\Mapping as ORM;
@@ -16,6 +15,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\PasswordStrength;
 
 #[ApiResource(
     operations: [
@@ -23,7 +23,6 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(security: self::ACCESS),
         new Post(validationContext: ['groups' => ['Default', self::WRITE]], processor: UserPasswordHasher::class),
         new Patch(security: self::ACCESS, processor: UserPasswordHasher::class),
-        new Put(security: self::ACCESS, processor: UserPasswordHasher::class),
         new Delete(security: self::ACCESS),
     ],
     normalizationContext: ['groups' => self::READ],
@@ -65,6 +64,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[Assert\NotBlank(groups: [self::WRITE])]
+    #[PasswordStrength([
+        'minScore' => PasswordStrength::STRENGTH_VERY_STRONG,
+    ])]
     #[Groups([self::WRITE, self::UPDATE])]
     private ?string $plainPassword = null;
 
