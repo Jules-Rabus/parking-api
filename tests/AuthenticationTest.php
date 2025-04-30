@@ -7,7 +7,6 @@ use App\Entity\User;
 
 class AuthenticationTest extends ApiTestCase
 {
-
     // Api doc
     public function testLogin(): void
     {

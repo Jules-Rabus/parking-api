@@ -18,12 +18,10 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 )]
 class CreateUserCommand extends Command
 {
-
     public function __construct(
-        private readonly EntityManagerInterface      $entityManager,
-        private readonly  UserPasswordHasherInterface $passwordHasher
-    )
-    {
+        private readonly EntityManagerInterface $entityManager,
+        private readonly UserPasswordHasherInterface $passwordHasher,
+    ) {
         parent::__construct();
     }
 
@@ -41,11 +39,12 @@ class CreateUserCommand extends Command
 
         $email = $input->getArgument('email');
         $plainPassword = $input->getArgument('password');
-        $isAdmin = (bool)$input->getOption('admin');
+        $isAdmin = (bool) $input->getOption('admin');
 
         $existing = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
         if ($existing) {
             $io->error(sprintf('A user with email "%s" already exists.', $email));
+
             return Command::FAILURE;
         }
 
@@ -63,6 +62,7 @@ class CreateUserCommand extends Command
         $this->entityManager->flush();
 
         $io->success(sprintf('User "%s" successfully created.', $email));
+
         return Command::SUCCESS;
     }
 }

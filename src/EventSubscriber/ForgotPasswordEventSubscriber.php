@@ -17,14 +17,13 @@ final class ForgotPasswordEventSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly ValidatorInterface     $validator,
+        private readonly ValidatorInterface $validator,
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly MailerInterface $mailer,
-        private readonly Environment     $twig,
+        private readonly Environment $twig,
         #[Autowire(env: 'FRONTEND_BASE_URL')]
-        private readonly string          $frontendUrl,
-    )
-    {
+        private readonly string $frontendUrl,
+    ) {
     }
 
     public static function getSubscribedEvents(): array
@@ -53,7 +52,6 @@ final class ForgotPasswordEventSubscriber implements EventSubscriberInterface
 
         $this->mailer->send($message);
     }
-
 
     public function onUpdatePassword(UpdatePasswordEvent $event): void
     {
