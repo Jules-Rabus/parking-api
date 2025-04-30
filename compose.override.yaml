@@ -11,10 +11,11 @@ services:
       # If you develop on Mac or Windows you can remove the vendor/ directory
       #  from the bind-mount for better performance by enabling the next line:
       - ./vendor:/app/vendor
-      # - ./var:/app/var
+      - ./var:/app/var
     environment:
+      MERCURE_EXTRA_DIRECTIVES: demo
       # See https://xdebug.org/docs/all_settings#mode
-      XDEBUG_MODE: "${XDEBUG_MODE:-off}"
+      XDEBUG_MODE: "${XDEBUG_MODE:-coverage}"
     extra_hosts:
       # Ensure that host.docker.internal is correctly defined on Linux
       - host.docker.internal:host-gateway
@@ -22,12 +23,18 @@ services:
   
   
   ###> doctrine/doctrine-bundle ###
-
-  ###< doctrine/doctrine-bundle ###
-  adminer:
-    image: adminer
+  database:
     ports:
-      - "8080:8080"
+      - "5432:5432"
+###< doctrine/doctrine-bundle ###
+
+###> symfony/mailer ###
+  mailer:
+    image: axllent/mailpit
+    ports:
+      - "1025"
+      - "8025"
     environment:
-      - ADMINER_DEFAULT_SERVER=postgres
-    restart: unless-stopped
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+###< symfony/mailer ###
