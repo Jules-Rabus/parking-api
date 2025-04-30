@@ -68,4 +68,18 @@ final class ReservationDeleteTest extends AbstractTestCase
 
         $this->assertResponseStatusCodeSame(422);
     }
+
+    public function testDeleteWithInProgressReservation(): void
+    {
+        $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+        $client = $this->createClientWithCredentials($user);
+        $reservation = ReservationFactory::createOne([
+            'startDate' => new \DateTimeImmutable('-1 day'),
+            'endDate' => new \DateTimeImmutable('+1 day'),
+            'status' => ReservationStatusEnum::CONFIRMED,
+        ]);
+        $client->request('DELETE', self::ROUTE.'/'.$reservation->getId());
+
+        $this->assertResponseStatusCodeSame(422);
+    }
 }

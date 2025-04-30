@@ -10,11 +10,8 @@ use Symfony\Component\Validator\ConstraintValidator;
 
 class ReservationUpdateValidator extends ConstraintValidator
 {
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $entityManager;
     }
 
     public function validate(mixed $value, Constraint $constraint): void
@@ -26,6 +23,7 @@ class ReservationUpdateValidator extends ConstraintValidator
 
         $startDate = $value->getStartDate();
         $endDate = $value->getEndDate();
+        $status = $value->getStatus();
         $newStatus = $value->getStatus();
 
         $now = new \DateTime();
@@ -44,7 +42,7 @@ class ReservationUpdateValidator extends ConstraintValidator
 
         if (null !== $oldStatus && ReservationStatusEnum::PENDING !== $oldStatus) {
             $this->context->buildViolation($constraint->messageStatus)
-                ->setParameter('{{ status }}', $oldStatus->value)
+                ->setParameter('{{ status }}', $status->value)
                 ->addViolation();
         }
     }

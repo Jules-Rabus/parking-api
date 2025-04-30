@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Entity\Client;
 use App\Entity\Date;
-use App\Entity\Reservation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -43,19 +42,20 @@ class MigrationCommand extends Command
     {
         $table = $input->getOption('table');
 
-        $jsonFile = $this->kernel->getProjectDir() . '/private/raju8736_prod_table_'.$table.'.json';
+        $jsonFile = $this->kernel->getProjectDir().'/private/raju8736_prod_table_'.$table.'.json';
 
         if (!file_exists($jsonFile)) {
             $output->writeln('<error>Le fichier JSON n\'existe pas.</error>');
+
             return Command::FAILURE;
         }
 
         $jsonData = file_get_contents($jsonFile);
         $datas = json_decode($jsonData, true);
 
-
         if (!$datas) {
             $output->writeln('<error>Erreur lors du décodage du fichier JSON.</error>');
+
             return Command::FAILURE;
         }
 
@@ -70,7 +70,7 @@ class MigrationCommand extends Command
             }
             foreach ($type as $data) {
                 switch ($table) {
-                    case "client":
+                    case 'client':
                         $client = $clients->findOneByEmail([$data['email']]);
                         if ($client) {
                             break;
@@ -86,7 +86,7 @@ class MigrationCommand extends Command
 
                         $this->entityManager->persist($user);
                         break;
-                    case "date":
+                    case 'date':
                         $dat = \DateTimeImmutable::createFromFormat('Y-m-d', $data['date']);
                         $date = $dates->findOneByDate([$dat]);
                         if ($date) {
@@ -96,11 +96,11 @@ class MigrationCommand extends Command
                         $date->setDate($dat);
                         $this->entityManager->persist($date);
                         break;
-                    case "reservation":
+                    case 'reservation':
                         break;
-                    case "reservation_date":
+                    case 'reservation_date':
                         break;
-                    case "code":
+                    case 'code':
                         break;
                 }
             }
@@ -115,15 +115,15 @@ class MigrationCommand extends Command
 
     public function jsonTOsql($datas)
     {
-        if (!isset($datas['type']) || $datas['type'] !== 'table' || !isset($datas['data'])) {
-            die("Format inattendu\n");
+        if (!isset($datas['type']) || 'table' !== $datas['type'] || !isset($datas['data'])) {
+            exit("Format inattendu\n");
         }
 
         $table = $datas['name'];
         $data = $datas['data'];
         $database = $datas['database'];
 
-        $output = 'exported_' . $table . '.sql';
+        $output = 'exported_'.$table.'.sql';
         $fp = fopen($output, 'w');
 
         fwrite($fp, "-- Export from database: $database\n");
@@ -134,8 +134,11 @@ class MigrationCommand extends Command
 
         foreach ($data as $row) {
             $values = array_map(function ($val) {
-                if (is_null($val)) return 'NULL';
-                return "'" . addslashes($val) . "'";
+                if (is_null($val)) {
+                    return 'NULL';
+                }
+
+                return "'".addslashes($val)."'";
             }, array_values($row));
 
             $valList = implode(', ', $values);

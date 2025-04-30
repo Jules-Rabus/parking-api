@@ -189,8 +189,8 @@ final class UserTest extends AbstractTestCase
         $this->assertResponseHeaderSame('content-type', 'application/problem+json; charset=utf-8');
 
         $this->assertJsonContains([
-            '@context' => '/contexts/ConstraintViolationList',
-            '@type' => 'ConstraintViolationList',
+            '@context' => '/contexts/ConstraintViolation',
+            '@type' => 'ConstraintViolation',
             'title' => 'An error occurred',
             'violations' => [
                 [

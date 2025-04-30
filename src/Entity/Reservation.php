@@ -22,6 +22,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -51,7 +52,6 @@ class Reservation
     public const string WRITE = 'reservation:write';
     public const string UPDATE = 'reservation:update';
     public const string DELETE = 'reservation:delete';
-
     private const string ACCESS = 'is_granted("ROLE_ADMIN")';
 
     #[ORM\Id]
@@ -86,6 +86,7 @@ class Reservation
     public ReservationStatusEnum $status;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Gedmo\Timestampable(on: 'change', field: 'status', value: ReservationStatusEnum::CONFIRMED)]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ])]
     private ?\DateTimeInterface $bookingDate = null;
@@ -96,6 +97,15 @@ class Reservation
     #[ORM\ManyToMany(targetEntity: Date::class, mappedBy: 'reservations')]
     #[Groups([self::READ])]
     private Collection $dates;
+
+    #[ORM\OneToOne(inversedBy: 'reservation', cascade: ['persist', 'remove'])]
+    #[Groups([self::READ])]
+    private ?Message $message = null;
+
+    #[ORM\ManyToOne(inversedBy: 'reservations')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    private ?User $holder = null;
 
     public function __construct()
     {
@@ -222,5 +232,50 @@ class Reservation
     public function getDuration(): int
     {
         return $this->startDate->diff($this->endDate)->days + 1;
+    }
+
+    public function getMessage(): ?Message
+    {
+        return $this->message;
+    }
+
+    public function setMessage(?Message $message): static
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
+    public function getHolder(): ?User
+    {
+        return $this->holder;
+    }
+
+    public function setHolder(?User $holder): static
+    {
+        $this->holder = $holder;
+
+        return $this;
+    }
+
+    #[Groups([self::READ])]
+    public function getPrice(): int
+    {
+        $duration = $this->getDuration();
+
+        // price under 5 days
+        if ($duration < 5) {
+            $price = [1 => 5, 2 => 8, 3 => 10, 4 => 10];
+
+            return $price[$duration];
+        }
+
+        // price over 5 days and under 29 days
+        if ($duration < 29) {
+            return 10 + (int) round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
+        }
+
+        // price over 28 days
+        return 70 + ($duration - 28) * 2;
     }
 }

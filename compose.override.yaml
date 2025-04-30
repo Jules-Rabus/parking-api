@@ -21,7 +21,6 @@ services:
       - host.docker.internal:host-gateway
     tty: true
   
-  
   ###> doctrine/doctrine-bundle ###
   database:
     ports:

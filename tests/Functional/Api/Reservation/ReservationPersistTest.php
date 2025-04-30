@@ -19,6 +19,7 @@ final class ReservationPersistTest extends AbstractTestCase
     public function testPersist(): void
     {
         $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+        $holder = UserFactory::new()->create();
         $client = $this->createClientWithCredentials($user);
         $startDate = new \DateTimeImmutable();
         $endDate = $startDate->modify('+1 day');
@@ -37,6 +38,7 @@ final class ReservationPersistTest extends AbstractTestCase
                 'endDate' => $endDate->format('Y-m-d'),
                 'vehicleCount' => 5,
                 'status' => ReservationStatusEnum::PENDING,
+                'holder' => '/users/'.$holder->getId(),
             ],
         ]);
 
@@ -48,6 +50,7 @@ final class ReservationPersistTest extends AbstractTestCase
             'vehicleCount' => 5,
             'status' => ReservationStatusEnum::PENDING->value,
             'dates' => $dates,
+            'holder' => '/users/'.$holder->getId(),
         ]);
 
         $this->assertMatchesResourceItemJsonSchema(Reservation::class);
@@ -56,6 +59,7 @@ final class ReservationPersistTest extends AbstractTestCase
     public function testPersistWithStatutConfirmedAndCheckBookingDate(): void
     {
         $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+        $holder = UserFactory::new()->create();
         $client = $this->createClientWithCredentials($user);
         $startDate = new \DateTimeImmutable();
         $endDate = $startDate->modify('+1 day');
@@ -74,6 +78,7 @@ final class ReservationPersistTest extends AbstractTestCase
                 'endDate' => $endDate->format('Y-m-d'),
                 'vehicleCount' => 5,
                 'status' => ReservationStatusEnum::CONFIRMED,
+                'holder' => '/users/'.$holder->getId(),
             ],
         ]);
 
@@ -86,6 +91,7 @@ final class ReservationPersistTest extends AbstractTestCase
             'status' => ReservationStatusEnum::CONFIRMED->value,
             'dates' => $dates,
             'bookingDate' => (new \DateTime())->format('Y-m-d\TH:i:s+02:00'),
+            'holder' => '/users/'.$holder->getId(),
         ]);
 
         $this->assertMatchesResourceItemJsonSchema(Reservation::class);
@@ -94,6 +100,7 @@ final class ReservationPersistTest extends AbstractTestCase
     public function testPersistWithDates(): void
     {
         $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+        $holder = UserFactory::new()->create();
         $client = $this->createClientWithCredentials($user);
         $startDate = new \DateTimeImmutable();
         $endDate = $startDate->modify('+1 day');
@@ -112,6 +119,7 @@ final class ReservationPersistTest extends AbstractTestCase
                 'endDate' => $endDate->format('Y-m-d'),
                 'vehicleCount' => 5,
                 'status' => ReservationStatusEnum::PENDING,
+                'holder' => '/users/'.$holder->getId(),
             ],
         ]);
 
@@ -123,6 +131,7 @@ final class ReservationPersistTest extends AbstractTestCase
             'vehicleCount' => 5,
             'status' => ReservationStatusEnum::PENDING->value,
             'dates' => $dates,
+            'holder' => '/users/'.$holder->getId(),
         ]);
         $this->assertMatchesResourceItemJsonSchema(Reservation::class);
     }
@@ -130,6 +139,7 @@ final class ReservationPersistTest extends AbstractTestCase
     public function testPersistWithInvalidStatus(): void
     {
         $user = UserFactory::new()->create(['roles' => ['ROLE_ADMIN']]);
+        $holder = UserFactory::new()->create();
         $client = $this->createClientWithCredentials($user);
         $startDate = new \DateTimeImmutable();
         $endDate = $startDate->modify('+1 day');
@@ -144,6 +154,7 @@ final class ReservationPersistTest extends AbstractTestCase
                 'endDate' => $endDate->format('Y-m-d'),
                 'vehicleCount' => 5,
                 'status' => ReservationStatusEnum::CANCELLED,
+                'holder' => '/users/'.$holder->getId(),
             ],
         ]);
 
@@ -162,6 +173,7 @@ final class ReservationPersistTest extends AbstractTestCase
                 'endDate' => $endDate->format('Y-m-d\T00:00:00+00:00'),
                 'vehicleCount' => 5,
                 'status' => ReservationStatusEnum::NOT_CONFIRMED,
+                'holder' => '/users/'.$holder->getId(),
             ],
         ]);
 
