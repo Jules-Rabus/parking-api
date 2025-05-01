@@ -14,23 +14,25 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
     name: 'app:create-user',
-    description: 'Creates a new user with hashed password'
+    description: 'Creates or updates a user with hashed password'
 )]
 class CreateUserCommand extends Command
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
+        private readonly EntityManagerInterface      $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
-    ) {
+    )
+    {
         parent::__construct();
     }
 
     protected function configure(): void
     {
         $this
-            ->addArgument('email', InputArgument::REQUIRED, 'Email of the new user')
+            ->addArgument('email', InputArgument::REQUIRED, 'Email of the user')
             ->addArgument('password', InputArgument::REQUIRED, 'Plain password')
-            ->addOption('admin', null, InputArgument::OPTIONAL, 'Grant ROLE_ADMIN', false);
+            ->addOption('admin', null, InputArgument::OPTIONAL, 'Grant ROLE_ADMIN', false)
+            ->addOption('update', null, InputArgument::OPTIONAL, 'Update existing user', false);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -39,17 +41,21 @@ class CreateUserCommand extends Command
 
         $email = $input->getArgument('email');
         $plainPassword = $input->getArgument('password');
-        $isAdmin = (bool) $input->getOption('admin');
+        $isAdmin = (bool)$input->getOption('admin');
+        $update = (bool)$input->getOption('update');
 
-        $existing = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
-        if ($existing) {
-            $io->error(sprintf('A user with email "%s" already exists.', $email));
+        $repository = $this->entityManager->getRepository(User::class);
+        $user = $repository->findOneBy(['email' => $email]);
 
-            return Command::FAILURE;
+        if ($user) {
+            if (!$update) {
+                $io->error(sprintf('User "%s" already exists. Use --update to modify.', $email));
+                return Command::FAILURE;
+            }
+        } else {
+            $user = new User();
+            $user->setEmail($email);
         }
-
-        $user = new User();
-        $user->setEmail($email);
 
         if ($isAdmin) {
             $user->setRoles(['ROLE_ADMIN']);
@@ -61,7 +67,11 @@ class CreateUserCommand extends Command
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $io->success(sprintf('User "%s" successfully created.', $email));
+        if ($update && $user->getId()) {
+            $io->success(sprintf('User "%s" successfully updated.', $email));
+        } else {
+            $io->success(sprintf('User "%s" successfully created.', $email));
+        }
 
         return Command::SUCCESS;
     }

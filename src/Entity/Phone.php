@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -13,13 +16,19 @@ use App\Repository\PhoneRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PhoneRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(),
+        new GetCollection(
+            paginationEnabled: true,
+            paginationItemsPerPage: 50,
+            paginationMaximumItemsPerPage: 500,
+            paginationClientEnabled: true,
+        ),
         new Get(),
         new Post(validationContext: ['groups' => ['Default', self::WRITE]]),
         new Patch(validationContext: ['groups' => ['Default', self::UPDATE]]),
@@ -42,16 +51,20 @@ class Phone
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups([self::READ])]
+    #[ApiFilter(OrderFilter::class)]
+    #[ApiFilter(SearchFilter::class, strategy: "exact")]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotBlank]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[ApiFilter(SearchFilter::class)]
     private ?string $phoneNumber = null;
 
     #[ORM\ManyToOne(inversedBy: 'phones')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[ApiFilter(SearchFilter::class)]
     private ?User $owner = null;
 
     /**
@@ -77,6 +90,27 @@ class Phone
 
     public function setPhoneNumber(string $phoneNumber): static
     {
+        $phoneNumber = trim($phoneNumber);
+
+
+        $phoneNumber = preg_replace('/[^\d\+]/', '', $phoneNumber);
+
+        switch (true) {
+            case preg_match('/^\+33[67]\d{8}$/', $phoneNumber):
+                break;
+
+            case preg_match('/^0033([67]\d{8})$/', $phoneNumber, $m):
+                $phoneNumber = '+33' . $m[1];
+                break;
+
+            case preg_match('/^0?([67]\d{8})$/', $phoneNumber, $m):
+                $phoneNumber = '+33' . $m[1];
+                break;
+
+            default:
+                throw new InvalidArgumentException('Numéro mobile français (06 ou 07) invalide : ' . $phoneNumber);
+        }
+
         $this->phoneNumber = $phoneNumber;
 
         return $this;

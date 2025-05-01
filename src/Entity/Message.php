@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -19,7 +22,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(),
+        new GetCollection(
+            paginationEnabled: true,
+            paginationItemsPerPage: 50,
+            paginationMaximumItemsPerPage: 500,
+            paginationClientEnabled: true,
+        ),
         new Get(
             provider: MessageProvider::class
         ),
@@ -31,12 +39,14 @@ class Message
     use Timestampable;
 
     public const string READ = 'message:read';
-    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER") or 1 === 1';
+    private const string ACCESS = 'is_granted("ROLE_ADMIN") or is_granted("ROLE_USER")';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups([self::READ])]
+    #[ApiFilter(OrderFilter::class)]
+    #[ApiFilter(SearchFilter::class, strategy: "exact")]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -49,6 +59,7 @@ class Message
     #[ORM\Column(type: Types::STRING, enumType: MessageStatusEnum::class)]
     #[Assert\NotNull]
     #[Groups([self::READ])]
+    #[ApiFilter(SearchFilter::class)]
     public MessageStatusEnum $status;
 
     /**
@@ -59,10 +70,12 @@ class Message
 
     #[ORM\ManyToOne(inversedBy: 'messages')]
     #[Groups([self::READ])]
+    #[ApiFilter(SearchFilter::class)]
     private ?Phone $phone = null;
 
     #[ORM\OneToOne(mappedBy: 'message', cascade: ['persist', 'remove'])]
     #[Groups([self::READ])]
+    #[ApiFilter(SearchFilter::class)]
     private ?Reservation $reservation = null;
 
     /**

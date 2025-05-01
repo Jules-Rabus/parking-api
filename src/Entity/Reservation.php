@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -29,7 +31,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(DateFilter::class, properties: ['startDate', 'endDate', 'bookingDate'])]
 #[ApiResource(
     operations: [
-        new GetCollection(),
+        new GetCollection(
+            paginationEnabled: true,
+            paginationItemsPerPage: 50,
+            paginationMaximumItemsPerPage: 500,
+            paginationClientEnabled: true,
+        ),
         new Get(),
         new Post(validationContext: ['groups' => ['Default', self::WRITE]], validate: true, processor: ReservationPersistProcessor::class),
         new Patch(validationContext: ['groups' => ['Default', self::UPDATE]], validate: true, processor: ReservationPersistProcessor::class),
@@ -58,6 +65,8 @@ class Reservation
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups([self::READ])]
+    #[ApiFilter(OrderFilter::class)]
+    #[ApiFilter(SearchFilter::class, strategy: "exact")]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
@@ -65,6 +74,7 @@ class Reservation
     #[Assert\LessThan(propertyPath: 'endDate')]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[ApiFilter(DateFilter::class)]
     private \DateTimeInterface $startDate;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
@@ -72,6 +82,7 @@ class Reservation
     #[Assert\GreaterThan(propertyPath: 'startDate')]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[ApiFilter(DateFilter::class)]
     private \DateTimeInterface $endDate;
 
     #[ORM\Column(type: Types::INTEGER)]
@@ -83,12 +94,14 @@ class Reservation
     #[ORM\Column(type: Types::STRING, enumType: ReservationStatusEnum::class)]
     #[Assert\NotNull]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[ApiFilter(SearchFilter::class)]
     public ReservationStatusEnum $status;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Gedmo\Timestampable(on: 'change', field: 'status', value: ReservationStatusEnum::CONFIRMED)]
     #[Assert\GreaterThanOrEqual('today', groups: [self::WRITE, self::UPDATE])]
     #[Groups([self::READ])]
+    #[ApiFilter(DateFilter::class)]
     private ?\DateTimeInterface $bookingDate = null;
 
     /**
@@ -105,6 +118,8 @@ class Reservation
     #[ORM\ManyToOne(inversedBy: 'reservations')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[Assert\NotNull]
+    #[ApiFilter(SearchFilter::class)]
     private ?User $holder = null;
 
     public function __construct()
@@ -272,7 +287,7 @@ class Reservation
 
         // price over 5 days and under 29 days
         if ($duration < 29) {
-            return 10 + (int) round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
+            return 10 + (int)round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
         }
 
         // price over 28 days

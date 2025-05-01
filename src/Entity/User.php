@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -22,51 +25,65 @@ use Symfony\Component\Validator\Constraints\PasswordStrength;
 
 #[ApiResource(
     operations: [
-        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
+        new GetCollection(
+            paginationEnabled: true,
+            paginationItemsPerPage: 50,
+            paginationMaximumItemsPerPage: 500,
+            paginationClientEnabled: true,
+            security: self::ACCESS_ADMIN,
+        ),
         new Get(security: self::ACCESS),
-        new Post(validationContext: ['groups' => ['Default', self::WRITE]], processor: UserPasswordHasher::class),
-        new Patch(security: self::ACCESS, processor: UserPasswordHasher::class),
-        new Delete(security: self::ACCESS),
+        new Post(
+            security: self::ACCESS_ADMIN,
+            validationContext: ['groups' => ['Default', self::WRITE]],
+            processor: UserPasswordHasher::class,
+        ),
+        new Patch(security: self::ACCESS_ADMIN, processor: UserPasswordHasher::class),
+        new Delete(security: self::ACCESS_ADMIN),
     ],
     normalizationContext: ['groups' => self::READ],
     denormalizationContext: ['groups' => [self::WRITE, self::UPDATE]],
 )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     public const string READ = 'user:read';
     public const string WRITE = 'user:write';
     public const string UPDATE = 'user:update';
 
-    private const string ACCESS = 'is_granted("ROLE_ADMIN") or object == user';
+    private const string ACCESS = 'object == user';
+    private const ACCESS_ADMIN = 'is_granted("ROLE_ADMIN")';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups([self::READ])]
+    #[ApiFilter(OrderFilter::class)]
+    #[ApiFilter(SearchFilter::class, strategy: "exact")]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 180, unique: true, nullable: true)]
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
     #[Assert\Email]
+    #[ApiFilter(SearchFilter::class)]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups([self::READ, self::WRITE])]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[ApiFilter(SearchFilter::class)]
     private array $roles = [];
 
     /**
-     * @var string The hashed password
+     * @var string|null The hashed password
      */
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?string $password = null;
 
-    #[Assert\NotBlank(groups: [self::WRITE])]
+    #[Assert\NotBlank(groups: [self::WRITE, self::UPDATE])]
     #[PasswordStrength([
         'minScore' => PasswordStrength::STRENGTH_VERY_STRONG,
     ])]
@@ -77,13 +94,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Phone>
      */
     #[ORM\OneToMany(targetEntity: Phone::class, mappedBy: 'owner')]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private Collection $phones;
 
     /**
      * @var Collection<int, Reservation>
      */
     #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'holder', orphanRemoval: true)]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private Collection $reservations;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[ApiFilter(SearchFilter::class, properties: ['firstName' => 'istart'])]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[ApiFilter(SearchFilter::class, properties: ['lastName' => 'istart'])]
+    private ?string $lastName = null;
 
     public function __construct()
     {
@@ -115,7 +143,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**
@@ -250,5 +278,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         });
 
         return $confirmedReservations->count();
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(?string $firstName): static
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(string $lastName): static
+    {
+        $this->lastName = $lastName;
+
+        return $this;
     }
 }
