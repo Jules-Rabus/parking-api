@@ -31,6 +31,7 @@ class CreateUserCommand extends Command
         $this
             ->addArgument('email', InputArgument::REQUIRED, 'Email of the user')
             ->addArgument('password', InputArgument::REQUIRED, 'Plain password')
+            ->addArgument('last_name', InputArgument::REQUIRED, 'Last name of the user')
             ->addOption('admin', null, InputArgument::OPTIONAL, 'Grant ROLE_ADMIN', false)
             ->addOption('update', null, InputArgument::OPTIONAL, 'Update existing user', false);
     }
@@ -41,6 +42,7 @@ class CreateUserCommand extends Command
 
         $email = $input->getArgument('email');
         $plainPassword = $input->getArgument('password');
+        $lastName = $input->getArgument('last_name');
         $isAdmin = (bool)$input->getOption('admin');
         $update = (bool)$input->getOption('update');
 
@@ -61,6 +63,7 @@ class CreateUserCommand extends Command
             $user->setRoles(['ROLE_ADMIN']);
         }
 
+        $user->setLastName($lastName);
         $hashed = $this->passwordHasher->hashPassword($user, $plainPassword);
         $user->setPassword($hashed);
 
