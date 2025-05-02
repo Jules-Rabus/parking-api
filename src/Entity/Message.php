@@ -46,7 +46,7 @@ class Message
     #[ORM\Column]
     #[Groups([self::READ])]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]

@@ -43,7 +43,7 @@ class Date
     #[ORM\Column]
     #[ApiProperty(identifier: false)]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, unique: true)]
@@ -128,7 +128,7 @@ class Date
             return new ArrayCollection();
         }
 
-        return $this->reservations->filter(fn(Reservation $reservation) => Date::compareDates($reservation->getStartDate(), $this->getDate()));
+        return $this->reservations->filter(fn (Reservation $reservation) => Date::compareDates($reservation->getStartDate(), $this->getDate()));
     }
 
     /**
@@ -140,12 +140,12 @@ class Date
             return new ArrayCollection();
         }
 
-        return $this->reservations->filter(fn(Reservation $reservation) => Date::compareDates($reservation->getEndDate(), $this->getDate()));
+        return $this->reservations->filter(fn (Reservation $reservation) => Date::compareDates($reservation->getEndDate(), $this->getDate()));
     }
 
     public function getRemainingVehicleCapacity(): int
     {
-        return self::MAX_RESERVATIONS - array_reduce($this->reservations->toArray(), fn(int $count, Reservation $reservation) => $count + $reservation->getVehicleCount(), 0);
+        return self::MAX_RESERVATIONS - array_reduce($this->reservations->toArray(), fn (int $count, Reservation $reservation) => $count + $reservation->getVehicleCount(), 0);
     }
 
     public function getArrivalVehicleCount(): int
