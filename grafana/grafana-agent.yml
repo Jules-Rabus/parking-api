@@ -1,0 +1,16 @@
+metrics:
+    global:
+        scrape_interval: 15s
+    configs:
+        - name: symfony_metrics
+          scrape_configs:
+              - job_name: 'symfony-app'
+                metrics_path: /metrics/prometheus
+                static_configs:
+                    - targets: ['https://api.parking-du-moulin.fr/']
+#                    - targets: ['host.docker.internal:8000']
+          remote_write:
+              - url: '%env(GRAFANA_URL)%'
+                basic_auth:
+                    username: '%env(GRAFANA_USER)%'
+                    password: '%env(GRAFANA_TOKEN)%'

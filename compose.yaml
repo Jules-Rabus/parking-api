@@ -11,24 +11,25 @@ services:
             - caddy_config:/config
         ports:
             # HTTP
-            -   target: 80
-                published: ${HTTP_PORT:-80}
-                protocol: tcp
+            - target: 80
+              published: ${HTTP_PORT:-80}
+              protocol: tcp
             # HTTPS
-            -   target: 443
-                published: ${HTTPS_PORT:-443}
-                protocol: tcp
+            - target: 443
+              published: ${HTTPS_PORT:-443}
+              protocol: tcp
             # HTTP/3
-            -   target: 443
-                published: ${HTTP3_PORT:-443}
-                protocol: udp
+            - target: 443
+              published: ${HTTP3_PORT:-443}
+              protocol: udp
+        networks:
+            - monitoring
     
     database:
         container_name: database
         image: postgres:${POSTGRES_VERSION:-16}-alpine
         environment:
             POSTGRES_DB: ${POSTGRES_DB:-app}
-            # You should definitely change the password in production
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
             POSTGRES_USER: ${POSTGRES_USER:-app}
         healthcheck:
@@ -38,11 +39,23 @@ services:
             start_period: 60s
         volumes:
             - database_data:/var/lib/postgresql/data:rw
-            # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-            # - ./docker/db/data:/var/lib/postgresql/data:rw
+        networks:
+            - monitoring
+    
+    grafana-agent:
+        image: grafana/agent
+        container_name: grafana-agent
+        volumes:
+            - ./grafana-agent.yml:/etc/agent-config.yml
+        command: -config.file=/etc/agent-config.yml
+        networks:
+            - monitoring
 
 volumes:
     caddy_data:
     caddy_config:
     database_data:
 
+networks:
+    monitoring:
+        driver: bridge
