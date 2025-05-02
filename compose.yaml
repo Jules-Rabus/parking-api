@@ -40,6 +40,36 @@ services:
             - database_data:/var/lib/postgresql/data:rw
             # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
             # - ./docker/db/data:/var/lib/postgresql/data:rw
+                
+    nextjs:
+        build:
+            context: ./pwa
+            target: ${BUILD_TARGET:-dev}
+        image: ${IMAGES_PREFIX:-}app-nextjs
+        ports:
+            - '${APP_PORT:-3000}:3000'
+        volumes:
+            - ./pwa:/app:delegated
+            - /app/node_modules
+        environment:
+            - NODE_ENV=development
+        command: npm run dev
+        healthcheck:
+            test: [ "CMD", "curl", "-f", "http://localhost:${APP_PORT:-3000}" ]
+            interval: 1m
+            timeout: 30s
+            retries: 5
+
+    cypress:
+        build:
+            context: ./pwa
+            target: cypress
+        image: ${IMAGES_PREFIX:-}app-cypress
+        environment:
+            - CYPRESS_baseUrl=http://nextjs:${APP_PORT:-3000}
+        depends_on:
+            nextjs:
+                condition: service_healthy
 
 volumes:
     caddy_data:
