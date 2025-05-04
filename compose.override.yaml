@@ -24,11 +24,34 @@ services:
   ###> doctrine/doctrine-bundle ###
   database:
     ports:
-      - "5433:5432"
-  ###< doctrine/doctrine-bundle ###
+      - "5432:5432"
+    ###< doctrine/doctrine-bundle ###
+  
+  nextjs:
+    container_name: nextjs
+    build:
+      context: ./pwa
+      target: dev
+    volumes:
+      - ./pwa:/srv/app
+    ports:
+      - '${APP_PORT:-3000}:3000'
+
+  cypress:
+    container_name: cypress
+    build:
+      context: ./pwa
+      dockerfile: Dockerfile
+      target: cypress
+    image: ${IMAGES_PREFIX:-}cypress
+    environment:
+      - CYPRESS_BASE_URL=http://nextjs:${APP_PORT:-3000}
+    depends_on:
+      - nextjs
   
   ###> symfony/mailer ###
   mailer:
+    container_name: mailer
     image: axllent/mailpit
     ports:
       - "1025"

@@ -11,6 +11,11 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   
+  nextjs:
+    build:
+      context: ./pwa
+      target: prod
+
   uptime-kuma:
     container_name: uptime-kuma
     image: louislam/uptime-kuma:1.23.16-alpine
