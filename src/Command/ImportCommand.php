@@ -3,13 +3,12 @@
 namespace App\Command;
 
 use App\Entity\Date;
-use App\Entity\User;
 use App\Entity\Phone;
 use App\Entity\Reservation;
+use App\Entity\User;
 use App\Enum\ReservationStatusEnum;
 use App\Kernel;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,9 +24,8 @@ class ImportCommand extends Command
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly Kernel                 $kernel
-    )
-    {
+        private readonly Kernel $kernel,
+    ) {
         parent::__construct();
     }
 
@@ -35,8 +33,8 @@ class ImportCommand extends Command
     {
         ini_set('memory_limit', '1024M');
 
-        $clientsJson = file_get_contents($this->kernel->getProjectDir() . '/private/client.json');
-        $reservationsJson = file_get_contents($this->kernel->getProjectDir() . '/private/reservation.json');
+        $clientsJson = file_get_contents($this->kernel->getProjectDir().'/private/client.json');
+        $reservationsJson = file_get_contents($this->kernel->getProjectDir().'/private/reservation.json');
 
         $clientsDecoded = json_decode($clientsJson, true);
         $reservationsDecoded = json_decode($reservationsJson, true);
@@ -46,6 +44,7 @@ class ImportCommand extends Command
             || !is_array($reservationsDecoded)
         ) {
             $output->writeln('❌ Erreur : structure JSON invalide, non tableau.');
+
             return Command::FAILURE;
         }
 
@@ -64,7 +63,7 @@ class ImportCommand extends Command
             }
 
             $user = new User();
-            $user->setLastName((string)$row['nom']);
+            $user->setLastName((string) $row['nom']);
             if (!empty($row['email'])) {
                 $user->setEmail($row['email']);
             }
@@ -73,7 +72,7 @@ class ImportCommand extends Command
             if (!empty($row['telephone'])) {
                 $phone = new Phone();
                 try {
-                    $phone->setPhoneNumber((string)$row['telephone']);
+                    $phone->setPhoneNumber((string) $row['telephone']);
                 } catch (\InvalidArgumentException $e) {
                     $output->writeln("⏭ client #{$row['id']} skip: téléphone invalide");
                     continue;
@@ -93,7 +92,7 @@ class ImportCommand extends Command
 
         $i = 0;
         foreach ($reservationsData as $row) {
-            $i++;
+            ++$i;
 
             if (
                 empty($row['nombre_place'])
@@ -123,7 +122,7 @@ class ImportCommand extends Command
                             $userMap[$row['client_id']] = $user;
                         }
                     }
-                } catch (InvalidArgumentException) {
+                } catch (\InvalidArgumentException) {
                 }
             }
 
@@ -143,7 +142,7 @@ class ImportCommand extends Command
 
             $reservation = new Reservation();
             $reservation->setHolder($user);
-            $reservation->setVehicleCount((int)$row['nombre_place']);
+            $reservation->setVehicleCount((int) $row['nombre_place']);
             $reservation->setStartDate($startDate);
             $reservation->setEndDate($endDate);
             $reservation->setBookingDate($bookingDate);
@@ -157,12 +156,12 @@ class ImportCommand extends Command
 
             if (0 === $i % self::BATCH_SIZE) {
                 $this->entityManager->flush();
-                //$this->entityManager->clear(Reservation::class);
+                // $this->entityManager->clear(Reservation::class);
             }
         }
 
         $this->entityManager->flush();
-        //$this->entityManager->clear(Reservation::class);
+        // $this->entityManager->clear(Reservation::class);
 
         $output->writeln('✅ Import des réservations terminé.');
 
@@ -178,11 +177,11 @@ class ImportCommand extends Command
             case preg_match('/^\+33[67]\d{8}$/', $raw):
                 return $raw;
             case preg_match('/^0033([67]\d{8})$/', $raw, $m):
-                return '+33' . $m[1];
+                return '+33'.$m[1];
             case preg_match('/^0?([67]\d{8})$/', $raw, $m):
-                return '+33' . $m[1];
+                return '+33'.$m[1];
             default:
-                throw new InvalidArgumentException('Numéro mobile français invalide');
+                throw new \InvalidArgumentException('Numéro mobile français invalide');
         }
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Tests\Unit\Entity;
 
 use App\Entity\Phone;
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -26,11 +25,11 @@ class PhoneTest extends TestCase
     #[DataProvider('invalidPhoneProvider')]
     public function testSetPhoneNumberWithInvalidValues(string $input): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         (new Phone())->setPhoneNumber($input);
     }
-    
+
     public static function validPhoneProvider(): array
     {
         return [
@@ -50,7 +49,7 @@ class PhoneTest extends TestCase
             ['0688'],         // trop court
             ['061234567890'], // trop long
             ['abcde'],        // non numérique
-            ['+441234567890'] // mauvais pays
+            ['+441234567890'], // mauvais pays
         ];
     }
 }

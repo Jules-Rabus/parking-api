@@ -16,7 +16,6 @@ use App\Repository\PhoneRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use InvalidArgumentException;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -52,7 +51,7 @@ class Phone
     #[ORM\Column]
     #[Groups([self::READ])]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -92,7 +91,6 @@ class Phone
     {
         $phoneNumber = trim($phoneNumber);
 
-
         $phoneNumber = preg_replace('/[^\d\+]/', '', $phoneNumber);
 
         switch (true) {
@@ -100,15 +98,15 @@ class Phone
                 break;
 
             case preg_match('/^0033([67]\d{8})$/', $phoneNumber, $m):
-                $phoneNumber = '+33' . $m[1];
+                $phoneNumber = '+33'.$m[1];
                 break;
 
             case preg_match('/^0?([67]\d{8})$/', $phoneNumber, $m):
-                $phoneNumber = '+33' . $m[1];
+                $phoneNumber = '+33'.$m[1];
                 break;
 
             default:
-                throw new InvalidArgumentException('Numéro mobile français (06 ou 07) invalide : ' . $phoneNumber);
+                throw new \InvalidArgumentException('Numéro mobile français (06 ou 07) invalide : '.$phoneNumber);
         }
 
         $this->phoneNumber = $phoneNumber;

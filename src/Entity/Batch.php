@@ -41,7 +41,7 @@ class Batch
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, enumType: BatchStatusEnum::class)]

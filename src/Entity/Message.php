@@ -46,7 +46,7 @@ class Message
     #[ORM\Column]
     #[Groups([self::READ])]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -189,11 +189,17 @@ class Message
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getCases(): ?array
     {
         return $this->cases;
     }
 
+    /**
+     * @param array<string, mixed>|null $cases
+     */
     public function setCases(?array $cases): static
     {
         $this->cases = $cases;

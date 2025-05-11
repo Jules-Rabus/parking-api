@@ -66,7 +66,7 @@ class Reservation
     #[ORM\Column]
     #[Groups([self::READ])]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
@@ -287,7 +287,7 @@ class Reservation
 
         // price over 5 days and under 29 days
         if ($duration < 29) {
-            return 10 + (int)round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
+            return 10 + (int) round(($duration - 4) / 2, 0, PHP_ROUND_HALF_UP) * 5;
         }
 
         // price over 28 days

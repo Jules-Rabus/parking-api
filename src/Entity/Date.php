@@ -43,7 +43,7 @@ class Date
     #[ORM\Column]
     #[ApiProperty(identifier: false)]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, unique: true)]
@@ -128,7 +128,9 @@ class Date
             return new ArrayCollection();
         }
 
-        return $this->reservations->filter(fn(Reservation $reservation) => Date::compareDates($reservation->getStartDate(), $this->getDate()));
+        $arrivals = $this->reservations->filter(fn(Reservation $reservation) => Date::compareDates($reservation->getStartDate(), $this->getDate()));
+
+        return new ArrayCollection(array_values($arrivals->toArray()));
     }
 
     /**
@@ -140,7 +142,9 @@ class Date
             return new ArrayCollection();
         }
 
-        return $this->reservations->filter(fn(Reservation $reservation) => Date::compareDates($reservation->getEndDate(), $this->getDate()));
+        $departures = $this->reservations->filter(fn(Reservation $reservation) => Date::compareDates($reservation->getEndDate(), $this->getDate()));
+
+        return new ArrayCollection(array_values($departures->toArray()));
     }
 
     public function getRemainingVehicleCapacity(): int

@@ -22,6 +22,8 @@ services:
             -   target: 443
                 published: ${HTTP3_PORT:-443}
                 protocol: udp
+        depends_on:
+            - database
     
     database:
         container_name: database

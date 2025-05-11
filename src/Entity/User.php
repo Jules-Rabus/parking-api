@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Enum\ReservationStatusEnum;
 use App\Repository\UserRepository;
+use App\State\CurrentUserProvider;
 use App\State\UserPasswordHasher;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -33,6 +34,12 @@ use Symfony\Component\Validator\Constraints\PasswordStrength;
             security: self::ACCESS_ADMIN,
         ),
         new Get(security: self::ACCESS),
+        new Get(
+            uriTemplate: '/me',
+            normalizationContext: ['groups' => [self::READ]],
+            security: 'is_granted("IS_AUTHENTICATED_FULLY")',
+            provider: CurrentUserProvider::class
+        ),
         new Post(
             security: self::ACCESS_ADMIN,
             validationContext: ['groups' => ['Default', self::WRITE]],
@@ -60,7 +67,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     #[Groups([self::READ])]
     #[ApiFilter(OrderFilter::class)]
-    #[ApiFilter(SearchFilter::class, strategy: "exact")]
+    #[ApiFilter(SearchFilter::class, strategy: 'exact')]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true, nullable: true)]
@@ -106,11 +113,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     #[ApiFilter(SearchFilter::class, properties: ['firstName' => 'istart'])]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     #[ApiFilter(SearchFilter::class, properties: ['lastName' => 'istart'])]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private ?string $lastName = null;
 
     public function __construct()

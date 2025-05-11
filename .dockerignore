@@ -27,6 +27,7 @@ public/bundles/
 tests/
 var/
 vendor/
+pwa/
 .editorconfig
 .env.*.local
 .env.local
