@@ -37,7 +37,6 @@ export default function Admin() {
           {reservations.map((d) => {
             return (
               <tr key={d.id}>
-                <td>{d.vehicleCount}</td>
                 <td>
                   {d.startDate.toLocaleDateString("fr-FR", {
                     weekday: "long",
