@@ -137,9 +137,11 @@ class Reservation
         return $this->startDate;
     }
 
-    public function setStartDate(\DateTimeInterface $startDate): void
+    public function setStartDate(\DateTimeInterface $startDate): self
     {
         $this->startDate = $startDate;
+
+        return $this;
     }
 
     public function getEndDate(): \DateTimeInterface
@@ -147,9 +149,11 @@ class Reservation
         return $this->endDate;
     }
 
-    public function setEndDate(\DateTimeInterface $endDate): void
+    public function setEndDate(\DateTimeInterface $endDate): self
     {
         $this->endDate = $endDate;
+
+        return $this;
     }
 
     public function getVehicleCount(): int
@@ -157,9 +161,11 @@ class Reservation
         return $this->vehicleCount;
     }
 
-    public function setVehicleCount(int $vehicleCount): void
+    public function setVehicleCount(int $vehicleCount): self
     {
         $this->vehicleCount = $vehicleCount;
+
+        return $this;
     }
 
     public function getStatus(): ReservationStatusEnum
@@ -167,12 +173,14 @@ class Reservation
         return $this->status;
     }
 
-    public function setStatus(ReservationStatusEnum $status): void
+    public function setStatus(ReservationStatusEnum $status): self
     {
         if (ReservationStatusEnum::CONFIRMED === $status && null === $this->bookingDate) {
             $this->bookingDate = new \DateTimeImmutable();
         }
         $this->status = $status;
+
+        return $this;
     }
 
     /**
@@ -238,9 +246,11 @@ class Reservation
         return $this->bookingDate;
     }
 
-    public function setBookingDate(?\DateTimeInterface $bookingDate): void
+    public function setBookingDate(?\DateTimeInterface $bookingDate): self
     {
         $this->bookingDate = $bookingDate;
+
+        return $this;
     }
 
     #[Groups([self::READ])]
