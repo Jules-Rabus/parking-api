@@ -53,8 +53,11 @@ class ImportCommand extends Command
         $userMap = [];
 
         foreach ($clientsData as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
             if (empty($row['nom'])) {
-                $output->writeln("⏭ client #{$row['id']} skip: nom manquant");
+                $output->writeln("⏭ client #" . (isset($row['id']) ? $row['id'] : '') ."skip: nom manquant");
                 continue;
             }
             if (empty($row['telephone']) && empty($row['email'])) {
@@ -100,7 +103,7 @@ class ImportCommand extends Command
                 || empty($row['date_depart'])
                 || empty($row['date_reservation'])
             ) {
-                $output->writeln("⏭ reservation #{$row['id']} skip: données manquantes");
+                $output->writeln("⏭ reservation #".  (isset($row['id']) ? $row['id'] : '') ."skip: données manquantes");
                 continue;
             }
 
