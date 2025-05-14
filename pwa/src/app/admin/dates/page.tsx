@@ -1,4 +1,3 @@
-// src/app/admin/page.tsx
 "use client";
 
 import { getDatesAfter } from "@/api/dates";
