@@ -7,9 +7,9 @@
     default: false;
     prefersdark: true;
     color-scheme: "dark";
-    --color-base-100: oklch(14% 0.004 49.25);
-    --color-base-200: oklch(21% 0.006 56.043);
-    --color-base-300: oklch(26% 0.007 34.298);
+    --color-base-100: oklch(0.218 0.022 280.392);
+    --color-base-200: oklch(0.222 0.026 277.338);
+    --color-base-300: oklch(0.248 0.044 275.212);
     --color-base-content: oklch(97% 0.001 106.424);
     --color-primary: oklch(80% 0.114 19.571);
     --color-primary-content: oklch(25% 0.092 26.042);
@@ -21,11 +21,11 @@
     --color-neutral-content: oklch(98% 0.001 106.423);
     --color-info: oklch(54% 0.245 262.881);
     --color-info-content: oklch(97% 0.014 254.604);
-    --color-success: oklch(62% 0.194 149.214);
+    --color-success: oklch(0.657 0.2 142.879);
     --color-success-content: oklch(98% 0.018 155.826);
-    --color-warning: oklch(68% 0.162 75.834);
+    --color-warning: oklch(0.691 0.203 43.448);
     --color-warning-content: oklch(98% 0.026 102.212);
-    --color-error: oklch(57% 0.245 27.325);
+    --color-error: oklch(0.557 0.222 20.062);
     --color-error-content: oklch(97% 0.013 17.38);
     --radius-selector: 2rem;
     --radius-field: 1rem;
