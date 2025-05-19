@@ -56,6 +56,7 @@ class ImportCommand extends Command
             if (!is_array($row)) {
                 continue;
             }
+
             if (empty($row['nom'])) {
                 $output->writeln("⏭ client #" . (isset($row['id']) ? $row['id'] : '') ."skip: nom manquant");
                 continue;
@@ -73,6 +74,10 @@ class ImportCommand extends Command
             $this->entityManager->persist($user);
 
             if (!empty($row['telephone'])) {
+                $doublon = $this->entityManager->getRepository(Phone::class)->findOneBy(['phoneNumber' => $row['telephone']]);
+                if ($doublon) {
+                    continue;
+                }
                 $phone = new Phone();
                 try {
                     $phone->setPhoneNumber((string) $row['telephone']);
