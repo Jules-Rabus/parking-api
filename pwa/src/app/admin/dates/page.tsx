@@ -1,67 +1,91 @@
 "use client";
-
 import { getDatesAfter } from "@/api/dates";
 import { DateType } from "@/schemas/dates";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { MonthSeparator } from "@/app/admin/dates/components/MonthSperator";
+import { DateRow } from "@/app/admin/dates/components/DateRow";
+import { MonthWeekMinGrid } from "@/app/admin/dates/components/MonthWeekGrid";
+
+const PAGE_SIZE = 50;
 
 export default function Admin() {
-  const today = new Date();
   const [dates, setDates] = useState<DateType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [startDate] = useState(new Date());
+  const observer = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const { member, view } = await getDatesAfter(startDate, page, PAGE_SIZE);
+      setDates((prev) => [...prev, ...member]);
+      setHasMore(Boolean(view && view.next));
+      setPage((prev) => prev + 1);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, hasMore, page, startDate]);
 
   useEffect(() => {
-    const fetchDates = async () => {
-      try {
-        const dates = await getDatesAfter(today);
-        setDates(dates);
-      } catch (err: any) {
-        console.error("Error fetching dates:", err);
-      }
-    };
-    fetchDates();
+    loadMore();
   }, []);
 
-  const getBgColor = (capacity: number) => {
-    if (capacity > 20) return "bg-success";
-    if (capacity > 10) return "bg-warning";
-    return "bg-error";
-  };
+  useEffect(() => {
+    if (loading) return;
+    if (!sentinelRef.current) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new window.IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasMore && !loading) {
+        loadMore();
+      }
+    });
+    observer.current.observe(sentinelRef.current);
+  }, [loadMore, loading, hasMore]);
 
   return (
     <div className="min-h-screen p-6">
-      <h1 className="text-3xl font-bold mb-4">Dates à venir</h1>
-
+      <MonthWeekMinGrid />
       <div className="overflow-x-auto">
-        <table className="table table-zebra w-full">
+        <table className="table w-full">
           <thead>
             <tr>
               <th>Date</th>
-              <th>Places restantes</th>
-              <th>Arrivées</th>
-              <th>Départs</th>
+              <th>Place</th>
+              <th>Revenues</th>
             </tr>
           </thead>
           <tbody>
-            {dates.map((d) => {
-              const cap = d.remainingVehicleCapacity;
-              const bg = getBgColor(cap);
+            {dates.map((date) => {
+              const isFirstOfMonth = date.date.getDate() === 1;
+              const month = date.date.toLocaleDateString("fr-FR", {
+                month: "long",
+                year: "numeric",
+              });
               return (
-                <tr key={d.id} className={bg}>
-                  <td>
-                    {d.date.toLocaleDateString("fr-FR", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </td>
-                  <td className="font-bold">{cap}</td>
-                  <td>{d.arrivalVehicleCount}</td>
-                  <td>{d.departureVehicleCount}</td>
-                </tr>
+                <>
+                  {isFirstOfMonth && (
+                    <MonthSeparator month={month} key={"m-" + date.id} />
+                  )}
+                  <DateRow date={date} key={date.id} />
+                </>
               );
             })}
           </tbody>
         </table>
+        <div ref={sentinelRef} className="h-8 flex justify-center items-center">
+          {loading && (
+            <span className="loading loading-spinner loading-lg text-primary"></span>
+          )}
+          {!hasMore && (
+            <span className="text-base text-gray-400">
+              Plus de dates à charger.
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
