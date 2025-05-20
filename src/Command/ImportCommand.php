@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\Code;
 use App\Entity\Date;
 use App\Entity\Phone;
 use App\Entity\Reservation;
@@ -35,24 +36,43 @@ class ImportCommand extends Command
 
         $clientsJson = file_get_contents($this->kernel->getProjectDir().'/private/client.json');
         $reservationsJson = file_get_contents($this->kernel->getProjectDir().'/private/reservation.json');
+        $codesJson = file_get_contents($this->kernel->getProjectDir().'/private/code.json');
 
         $clientsDecoded = json_decode($clientsJson, true);
         $reservationsDecoded = json_decode($reservationsJson, true);
+        $codesDecoded = json_decode($codesJson, true);
 
-        if (!isset($clientsDecoded, $reservationsDecoded)
-            || !is_array($clientsDecoded)
-            || !is_array($reservationsDecoded)
-        ) {
+        if (!is_array($clientsDecoded) || !is_array($reservationsDecoded) || !is_array($codesDecoded)) {
             $output->writeln('❌ Erreur : structure JSON invalide, non tableau.');
 
             return Command::FAILURE;
         }
 
-        $clientsData = $clientsDecoded;
-        $reservationsData = $reservationsDecoded;
         $userMap = [];
 
-        foreach ($clientsData as $row) {
+        foreach ($codesDecoded as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            if (empty($row['date_debut']) || empty($row['date_fin'])) {
+                $output->writeln("⏭ code #" . (isset($row['id']) ? $row['id'] : '') ."skip: nom manquant");
+                continue;
+            }
+
+            $deb = \DateTime::createFromFormat('Y-m-d', $row['date_debut']);
+            $fin = \DateTime::createFromFormat('Y-m-d', $row['date_fin']);
+
+            $code = new Code();
+            $code->setAjout(((bool)$row['ajout']))
+                ->setStartDate($deb)
+                ->setEndDate($fin)
+                ->setContent($row['code']);
+
+            $this->entityManager->persist($code);
+        }
+
+        foreach ($clientsDecoded as $row) {
             if (!is_array($row)) {
                 continue;
             }
@@ -99,7 +119,7 @@ class ImportCommand extends Command
         $dateRepository = $this->entityManager->getRepository(Date::class);
 
         $i = 0;
-        foreach ($reservationsData as $row) {
+        foreach ($reservationsDecoded as $row) {
             ++$i;
 
             if (
@@ -160,16 +180,18 @@ class ImportCommand extends Command
                 $reservation->addDate($date);
             }
 
+            $codeAssign = $this->entityManager->getRepository(Code::class)->getCodeByDate($startDate, $endDate);
+
+            $reservation->setCode($codeAssign);
+
             $this->entityManager->persist($reservation);
 
             if (0 === $i % self::BATCH_SIZE) {
                 $this->entityManager->flush();
-                // $this->entityManager->clear(Reservation::class);
             }
         }
 
         $this->entityManager->flush();
-        // $this->entityManager->clear(Reservation::class);
 
         $output->writeln('✅ Import des réservations terminé.');
 

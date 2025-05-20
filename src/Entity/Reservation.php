@@ -122,6 +122,13 @@ class Reservation
     #[ApiFilter(SearchFilter::class)]
     private ?User $holder = null;
 
+    #[ORM\ManyToOne(inversedBy: 'reservations')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[Assert\NotNull]
+    #[ApiFilter(SearchFilter::class)]
+    private ?Code $code = null;
+
     public function __construct()
     {
         $this->dates = new ArrayCollection();
@@ -279,6 +286,18 @@ class Reservation
     public function setHolder(?User $holder): static
     {
         $this->holder = $holder;
+
+        return $this;
+    }
+
+    public function getCode(): ?Code
+    {
+        return $this->code;
+    }
+
+    public function setCode(?Code $code): self
+    {
+        $this->code = $code;
 
         return $this;
     }

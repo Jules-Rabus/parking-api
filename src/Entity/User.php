@@ -122,6 +122,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups([self::READ, self::WRITE, self::UPDATE])]
     private ?string $lastName = null;
 
+    #[ORM\Column(length: 4, unique: true, nullable: true)]
+    #[Groups([self::READ, self::WRITE, self::UPDATE])]
+    #[ApiFilter(SearchFilter::class)]
+    private ?string $code = null;
+
     public function __construct()
     {
         $this->phones = new ArrayCollection();
@@ -138,7 +143,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(?string $email): static
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
 
@@ -172,7 +177,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @param list<string> $roles
      */
-    public function setRoles(array $roles): static
+    public function setRoles(array $roles): self
     {
         $this->roles = $roles;
 
@@ -187,7 +192,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->password;
     }
 
-    public function setPassword(string $password): static
+    public function setPassword(string $password): self
     {
         $this->password = $password;
 
@@ -223,7 +228,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->phones;
     }
 
-    public function addPhone(Phone $phone): static
+    public function addPhone(Phone $phone): self
     {
         if (!$this->phones->contains($phone)) {
             $this->phones->add($phone);
@@ -233,7 +238,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function removePhone(Phone $phone): static
+    public function removePhone(Phone $phone): self
     {
         if ($this->phones->removeElement($phone)) {
             // set the owning side to null (unless already changed)
@@ -253,7 +258,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->reservations;
     }
 
-    public function addReservation(Reservation $reservation): static
+    public function addReservation(Reservation $reservation): self
     {
         if (!$this->reservations->contains($reservation)) {
             $this->reservations->add($reservation);
@@ -263,7 +268,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function removeReservation(Reservation $reservation): static
+    public function removeReservation(Reservation $reservation): self
     {
         if ($this->reservations->removeElement($reservation)) {
             // set the owning side to null (unless already changed)
@@ -294,7 +299,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->firstName;
     }
 
-    public function setFirstName(?string $firstName): static
+    public function setFirstName(?string $firstName): self
     {
         $this->firstName = $firstName;
 
@@ -306,9 +311,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->lastName;
     }
 
-    public function setLastName(string $lastName): static
+    public function setLastName(string $lastName): self
     {
         $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getCode(): ?string
+    {
+        return $this->code;
+    }
+
+    public function setCode(?string $code): self
+    {
+        $this->code = $code;
 
         return $this;
     }
