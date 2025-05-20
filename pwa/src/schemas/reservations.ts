@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {MessageSchema} from "@/schemas/message";
 import {UserSchema} from "@/schemas/auth";
+import {CodeSchema} from "@/schemas/codes";
 
 export const ReservationSchema = z.object({
   id: z.number(),
@@ -12,7 +13,8 @@ export const ReservationSchema = z.object({
   bookingDate: z.string().transform((s) => new Date(s)),
   dates: z.array(z.string()),
   message: MessageSchema,
-  holder: UserSchema
+  holder: UserSchema,
+  code: CodeSchema
 });
 
 export type ReservationType = z.infer<typeof ReservationSchema>;
